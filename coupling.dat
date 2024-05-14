@@ -10,6 +10,9 @@
 600
 1000
 
+#Project Name [RMC input card name [split with space] Fluent case name, no ext]
+Singlepin pin
+
 #DIM
 8 8 100
 
@@ -41,6 +44,8 @@
 -0.0075 0.0075 -0.0075 0.0075 0 0.2
 
 #Multilevel Flag = 1
+
+###### Re-compile required if anything changes above this line #######
 
 #Omega = 0.5
 

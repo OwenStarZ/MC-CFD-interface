@@ -36,7 +36,7 @@ with open(coupling_path, 'r') as coupling_file:
             flag = int(lines[i].split()[-1])
 
 
-# Part II. 替换 udf.c 文件中的宏定义
+# Part II. 替换 udf.c 文件中的宏定义，并更改配置文件中的相关路径
 udf_path = os.path.join(script_dir, 'libudf', 'src', 'udf.c')  # udf.c 文件的路径
 temp_file_path = udf_path + '.tmp'  # 创建一个临时文件用于修改
 
@@ -137,6 +137,20 @@ with open(udf_path, 'r', encoding='utf-8') as udf_file, open(temp_file_path, 'w'
             temp_file.write(line)
 
 shutil.copyfile(temp_file_path, udf_path)  # 强制替换原始文件
+
+os.remove(temp_file_path)  # 删除临时文件
+
+makefile_path = os.path.join(script_dir, 'libudf', 'src', 'makefile')  # makefile 文件的路径
+temp_file_path = makefile_path + '.tmp'  # 创建一个临时文件用于修改
+
+with open(makefile_path, 'r', encoding='utf-8') as make_file, open(temp_file_path, 'w', encoding='utf-8') as temp_file:
+    for line in make_file:
+        if line.startswith('EX_LIB'):
+            temp_file.write(f'EX_LIB={script_dir}/libh5rw.so\n')
+        else:
+            temp_file.write(line)
+
+shutil.copyfile(temp_file_path, makefile_path)  # 强制替换原始文件
 
 os.remove(temp_file_path)  # 删除临时文件
 

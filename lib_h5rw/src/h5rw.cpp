@@ -55,7 +55,7 @@ double lambda4(double T, double R0, double R1, double R2, double q)
 	{
 		kold = knew;
 		Tave = T + (pow(R0, 3)* q/(6*kold)) * (R2*R2+R2*R1-2*R1*R1) / (R2*(R2*R2+R2*R1+R1*R1));
-		knew = 42.58-15564/Tave+1.2977E7/pow(Tave, 2)-1.8458E9/pow(Tave, 3);
+		knew = 0.0391112*exp(0.00224732*973.15)*(42.58-15564/Tave+1.2977E7/pow(Tave, 2)-1.8458E9/pow(Tave, 3));
 	} while (fabs(knew - kold) > 0.000001);
 	
 	return knew;

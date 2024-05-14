@@ -1,8 +1,4 @@
 rc fluent.cas.h5
-define/user-defined/compiled-functions load libudf
-define/user-defined/function-hooks/initialization read_power::libudf ,
-define/user-defined/function-hooks/execute-at-end cal_th::libudf ,
-define/boundary-conditions/solid geom-fuel ,, 1 no yes fuel_power::libudf ,,,,, ,,,,, ,,,,, ,, 
 solve/in/in-flow
 solve/iterate 500
 wd fluent.dat.h5
