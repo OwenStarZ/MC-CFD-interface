@@ -303,3 +303,21 @@ data_reflector = np.full((int(out_R_dim[0]), int(out_R_dim[1]), int(out_R_dim[2]
 dataset_reflector = file_reflector.create_dataset('/temp_reflector', data=data_reflector, dtype=np.float64)
 
 file_reflector.close()
+
+
+# Part VI. 将初始.h5文件保存到histories路径中
+source_files = [
+    "info_fuel.h5",
+    "info_coolant.h5",
+    "info_moderator.h5",
+    "info_reflector.h5",
+]
+destination_folder = os.path.join(script_dir, "histories")
+os.makedirs(destination_folder, exist_ok=True)
+
+for file in source_files:
+    file_name, file_ext = os.path.splitext(file)
+    new_file_name = f"{file_name}_iter0{file_ext}"
+    source_path = os.path.join(script_dir, file)
+    destination_path = os.path.join(destination_folder, new_file_name)
+    shutil.copyfile(source_path, destination_path)
