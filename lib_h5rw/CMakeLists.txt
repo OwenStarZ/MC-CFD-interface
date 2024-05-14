@@ -1,5 +1,4 @@
-cmake_minimum_required (VERSION 3)
-
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project (h5rw_so)
 
 set ( SRC_LIST

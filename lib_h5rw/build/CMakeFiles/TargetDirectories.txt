@@ -1,0 +1,3 @@
+/home/lenovo/Research/2023_ss_coupling/test/lib_h5rw/build/CMakeFiles/h5rw.dir
+/home/lenovo/Research/2023_ss_coupling/test/lib_h5rw/build/CMakeFiles/edit_cache.dir
+/home/lenovo/Research/2023_ss_coupling/test/lib_h5rw/build/CMakeFiles/rebuild_cache.dir

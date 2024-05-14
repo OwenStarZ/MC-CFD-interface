@@ -13,7 +13,7 @@
 # sccs id: %W% %G%
 #----------------------------------------------------------------------#
 SHELL= /bin/sh
-FLUENT_ARCH= unknown_arch
+FLUENT_ARCH= lnamd64
 DIR= $(FLUENT_ARCH)/[23]*
 SRC= ../../src/*.{c,h,cpp,hpp} ../../src/makefile ../../src/user.udf
 

@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared -Wl,-soname,libh5rw.so -o /home/lenovo/Research/2023_ss_coupling/test/lib_h5rw/lib/libh5rw.so CMakeFiles/h5rw.dir/src/h5rw.cpp.o   -L/usr/local/hdf5/1.10.5/lib  -Wl,-rpath,/usr/local/hdf5/1.10.5/lib -lhdf5 

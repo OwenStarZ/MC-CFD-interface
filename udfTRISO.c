@@ -8,26 +8,51 @@ extern void WriteFuelData(real data1[], real data2[]);
 extern void WriteModeratorData(real data[]);
 extern void WriteCoolantData(real data1[], real data2[]);
 
-/*******************change this dims for reading power*******************/
+/*******************Auto changed by py script*******************/
 
-#define DIM0  8
-#define DIM1  8
-#define DIM2  100
+//input for power density
+#define DIM0 8
+#define DIM1 8
+#define DIM2 100
 
-/*******************change this for output*******************/
-/*******************also change this for multi-output meshes!*******************/
+//Output for Fuel temp
+#define OUTDIMF0 15
+#define OUTDIMF1 15
+#define OUTDIMF2 40
 
-#define OUTDIMF0  8
-#define OUTDIMF1  8
-#define OUTDIMF2  100 //Output for Fuel temp
+//Output for Coolant temp and dens
+#define OUTDIMC0 15
+#define OUTDIMC1 15
+#define OUTDIMC2 40
 
-#define OUTDIMC0  8
-#define OUTDIMC1  8
-#define OUTDIMC2  100 //Output for Coolant temp and dens
+//Output for Moderator temp
+#define OUTDIMM0 15
+#define OUTDIMM1 15
+#define OUTDIMM2 40
 
-#define OUTDIMM0  1
-#define OUTDIMM1  1
-#define OUTDIMM2  100 //Output for Moderator temp*/
+//output mesh bndry
+#define F_xmin -0.01
+#define F_xmax 0.01
+#define F_ymin -0.01
+#define F_ymax 0.01
+#define F_zmin 0
+#define F_zmax 0.5
+
+#define C_xmin -0.01
+#define C_xmax 0.01
+#define C_ymin -0.01
+#define C_ymax 0.01
+#define C_zmin 0
+#define C_zmax 0.5
+
+#define M_xmin -0.01
+#define M_xmax 0.01
+#define M_ymin -0.01
+#define M_ymax 0.01
+#define M_zmin 0
+#define M_zmax 0.5
+
+/*******************Auto changed by py script*******************/
 
 real rmc_bndry[6];
 real rmc_power[DIM0*DIM1*DIM2];
@@ -114,7 +139,7 @@ DEFINE_INIT(read_power, d)
 		Message("\n start reading power... \n");
 		ReadRMCPowerTally(rmc_bndry, rmc_power);
 		Message("\n power transfered \n");
-		
+
 		for (iz = 0; iz < DIM2; iz++){
             for (iy = 0; iy < DIM1; iy++){
                 for(ix = 0; ix < DIM0; ix++){
@@ -226,12 +251,10 @@ DEFINE_SOURCE(fuel_power, cell, thread, dS, eqn)
 	return source;
 }*/
 
-DEFINE_EXECUTE_AT_END(cal_TH)
+DEFINE_EXECUTE_AT_END(cal_th)
 {
     int ix, iy, iz;
-	int jx, jy, jz;
-
-	/*******************Change the dimensions for multi-output meshes!*******************/
+    int jx, jy, jz;
 
 	real cnt_vol_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_vol_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
@@ -247,7 +270,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 	
 	#if RP_HOST // RP_HOST
 		// OUTPUT
-		/*******************Change the dimensions for multi-output meshes!*******************/
 		real temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
         real power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 		real temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
@@ -275,8 +297,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 		fclose(fp);
 	#endif // RP_HOST
 	
-	/*******************Change the dimensions for multi-output meshes!*******************/
-
 	real size_F_mesh = OUTDIMF0*OUTDIMF1*OUTDIMF2;
 	real size_C_mesh = OUTDIMC0*OUTDIMC1*OUTDIMC2;
 	real size_M_mesh = OUTDIMM0*OUTDIMM1*OUTDIMM2;
@@ -303,7 +323,7 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 	
 	#if !RP_HOST		
 		
-	/*******************Change the dimensions for multi-output meshes!*******************/
+	/*******************Auto changed by py script*******************/
 
         int i;
 		int F_bin_x = OUTDIMF0;
@@ -315,15 +335,15 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 		int M_bin_x = OUTDIMM0;
 		int M_bin_y = OUTDIMM1;
 		int M_bin_z = OUTDIMM2;
-		real F_bndry_x[2] = {-0.0075, 0.0075};
-		real F_bndry_y[2] = {-0.0075, 0.0075};
-		real F_bndry_z[2] = {0., 0.2};
-		real C_bndry_x[2] = {-0.0075, 0.0075};
-		real C_bndry_y[2] = {-0.0075, 0.0075};
-		real C_bndry_z[2] = {0., 0.2};
-		real M_bndry_x[2] = {-0.0075, 0.0075};
-		real M_bndry_y[2] = {-0.0075, 0.0075};
-		real M_bndry_z[2] = {0., 0.2};
+		real F_bndry_x[2] = {F_xmin, F_xmax};
+		real F_bndry_y[2] = {F_ymin, F_ymax};
+		real F_bndry_z[2] = {F_zmin, F_zmax};
+		real C_bndry_x[2] = {C_xmin, C_xmax};
+		real C_bndry_y[2] = {C_ymin, C_ymax};
+		real C_bndry_z[2] = {C_zmin, C_zmax};
+		real M_bndry_x[2] = {M_xmin, M_xmax};
+		real M_bndry_y[2] = {M_ymin, M_ymax};
+		real M_bndry_z[2] = {M_zmin, M_zmax};
         real F_hx = (F_bndry_x[1] - F_bndry_x[0]) / F_bin_x;
         real F_hy = (F_bndry_y[1] - F_bndry_y[0]) / F_bin_y;
         real F_hz = (F_bndry_z[1] - F_bndry_z[0]) / F_bin_z;

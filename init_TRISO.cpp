@@ -60,15 +60,15 @@ int main()
 	int a[1] = { 1 }; // 1 for uniform mesh, 2 for the other
 
 	double F_geo_binnumber[3] = { OUTDIMF0,OUTDIMF1,OUTDIMF2 };
-	double F_geo_boundary[3][2] = { {F_xmin,F_xmax},{F_ymin,F_ymax},{F_zmin,F_zmax} };         //  change this, unit in [cm]!!!
+	double F_geo_boundary[3][2] = { {F_xmin,F_xmax},{F_ymin,F_ymax},{F_zmin,F_zmax} };
 	double F_data[OUTDIMF0][OUTDIMF1][OUTDIMF2];
 
 	double C_geo_binnumber[3] = { OUTDIMC0,OUTDIMC1,OUTDIMC2 };
-	double C_geo_boundary[3][2] = { {C_xmin,C_xmax},{C_ymin,C_ymax},{C_zmin,C_zmax} };         //  change this, unit in [cm]!!!
+	double C_geo_boundary[3][2] = { {C_xmin,C_xmax},{C_ymin,C_ymax},{C_zmin,C_zmax} };
 	double C_data[OUTDIMC0][OUTDIMC1][OUTDIMC2];
 	
 	double M_geo_binnumber[3] = { OUTDIMM0,OUTDIMM1,OUTDIMM2 };
-	double M_geo_boundary[3][2] = { {M_xmin,M_xmax},{M_ymin,M_ymax},{M_zmin,M_zmax} };         //  change this, unit in [cm]!!!
+	double M_geo_boundary[3][2] = { {M_xmin,M_xmax},{M_ymin,M_ymax},{M_zmin,M_zmax} };
 	double M_data[OUTDIMM0][OUTDIMM1][OUTDIMM2];
 	
 

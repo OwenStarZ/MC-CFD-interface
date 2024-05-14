@@ -1,10 +1,34 @@
 10
-570.662
+0.0047
 0.0
 0.0
 0.0
 0.0
 900
-700
-620
-1.00
+750
+600
+1000
+
+#DIM
+8 8 100
+
+#OUTDIMF
+8 8 100
+
+#OUTDIMC
+8 8 100
+
+#OUTDIMM
+1 1 100
+
+#P_bndry in [cm] {xmin xmax ymin ymax zmin zmax}
+-0.75 0.75 -0.75 0.75 0 20
+
+#F_bndry in [m] {xmin xmax ymin ymax zmin zmax}
+-0.0075 0.0075 -0.0075 0.0075 0 0.2
+
+#C_bndry in [m] {xmin xmax ymin ymax zmin zmax}
+-0.0075 0.0075 -0.0075 0.0075 0 0.2
+
+#M_bndry in [m] {xmin xmax ymin ymax zmin zmax}
+-0.0075 0.0075 -0.0075 0.0075 0 0.2

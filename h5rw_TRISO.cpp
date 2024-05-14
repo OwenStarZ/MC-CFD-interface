@@ -22,27 +22,6 @@
 #define OUTDIMM1 1
 #define OUTDIMM2 100
 
-#define F_xmin -0.75
-#define F_xmax 0.75
-#define F_ymin -0.75
-#define F_ymax 0.75
-#define F_zmin 0.0
-#define F_zmax 20.0
-
-#define C_xmin -0.75
-#define C_xmax 0.75
-#define C_ymin -0.75
-#define C_ymax 0.75
-#define C_zmin 0.0
-#define C_zmax 20.0
-
-#define M_xmin -0.75
-#define M_xmax 0.75
-#define M_ymin -0.75
-#define M_ymax 0.75
-#define M_zmin 0.0
-#define M_zmax 20.0
-
 double lambda1(double T, double R, double q)
 {
     double knew, kold, k1d, k1p, k2p, k4r, k0, T0, Tmid;

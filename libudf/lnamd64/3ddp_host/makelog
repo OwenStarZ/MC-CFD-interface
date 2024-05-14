@@ -3,31 +3,31 @@ make[1]: 进入目录“/home/lenovo/Research/2023_ss_coupling/test/libudf/lnamd
 make[2]: 进入目录“/home/lenovo/Research/2023_ss_coupling/test/libudf/lnamd64/3ddp_host”
 make libudf.so "CFLAGS=-D_lnamd64 -D_GNU_SOURCE -fpic -shared -std=c99 -Wall -O -DPTR_RESTRICT=   " "LDFLAGS=-shared -lm"
 make[3]: 进入目录“/home/lenovo/Research/2023_ss_coupling/test/libudf/lnamd64/3ddp_host”
-# Compiling udf_names.o because of udf_names.c udf.h h5rw.hpp
+# Compiling udf_names.o because of udf_names.c udf.h
 cc -D_lnamd64 -D_GNU_SOURCE -fpic -shared -std=c99 -Wall -O -DPTR_RESTRICT=    -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`/`basename "\`pwd\`"` -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/main -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/addon-wrapper -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/io -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/species -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/pbns -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/numerics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/sphysics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/storage -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/mphase -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/bc -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/models -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/material -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/amg -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/util -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/mesh -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/udf -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/ht -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dx -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/turbulence -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/acoustics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/parallel -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/etc -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/ue -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dpm -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dbns -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/cortex/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/client/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/tgrid/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/mpi_wrapper/include -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/mpi_wrapper/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/include -I. -c udf_names.c
-# Compiling udf.o because of udf.c udf.h h5rw.hpp
+# Compiling udf.o because of udf.c udf.h
 cc -D_lnamd64 -D_GNU_SOURCE -fpic -shared -std=c99 -Wall -O -DPTR_RESTRICT=     -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`/`basename "\`pwd\`"` -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/main -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/addon-wrapper -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/io -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/species -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/pbns -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/numerics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/sphysics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/storage -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/mphase -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/bc -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/models -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/material -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/amg -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/util -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/mesh -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/udf -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/ht -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dx -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/turbulence -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/acoustics -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/parallel -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/etc -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/ue -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dpm -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/src/dbns -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/cortex/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/client/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/tgrid/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/mpi_wrapper/include -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/fluent21.1.0/multiport/mpi_wrapper/src -I/home/lenovo/Programfiles/ansys_inc/v211/fluent/include -I. -c udf.c
 udf.c: 在函数‘read_power’中:
-udf.c:88:10: 警告：未使用的变量‘total’ [-Wunused-variable]
+udf.c:107:10: 警告：未使用的变量‘total’ [-Wunused-variable]
      real total = 0.0;
           ^
-udf.c:87:7: 警告：变量‘iwork’被设定但未被使用 [-Wunused-but-set-variable]
+udf.c:106:7: 警告：变量‘iwork’被设定但未被使用 [-Wunused-but-set-variable]
   real iwork[DIM0*DIM1*DIM2];
        ^
-udf.c: 在函数‘cal_TH’中:
-udf.c:250:7: 警告：变量‘M_iwork’被设定但未被使用 [-Wunused-but-set-variable]
+udf.c: 在函数‘cal_th’中:
+udf.c:267:7: 警告：变量‘M_iwork’被设定但未被使用 [-Wunused-but-set-variable]
   real M_iwork[OUTDIMM0*OUTDIMM1*OUTDIMM2];
        ^
-udf.c:249:7: 警告：变量‘C_iwork’被设定但未被使用 [-Wunused-but-set-variable]
+udf.c:266:7: 警告：变量‘C_iwork’被设定但未被使用 [-Wunused-but-set-variable]
   real C_iwork[OUTDIMC0*OUTDIMC1*OUTDIMC2];
        ^
-udf.c:248:7: 警告：变量‘F_iwork’被设定但未被使用 [-Wunused-but-set-variable]
+udf.c:265:7: 警告：变量‘F_iwork’被设定但未被使用 [-Wunused-but-set-variable]
   real F_iwork[OUTDIMF0*OUTDIMF1*OUTDIMF2];
        ^
-udf.c:237:17: 警告：未使用的变量‘iz’ [-Wunused-variable]
+udf.c:256:17: 警告：未使用的变量‘iz’ [-Wunused-variable]
      int ix, iy, iz;
                  ^
-udf.c:237:13: 警告：未使用的变量‘iy’ [-Wunused-variable]
+udf.c:256:13: 警告：未使用的变量‘iy’ [-Wunused-variable]
      int ix, iy, iz;
              ^
 # Linking libudf.so because of makefile user.udf udf_names.c udf_names.o udf.o
