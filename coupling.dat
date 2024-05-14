@@ -6,6 +6,7 @@
 0.0
 900
 750
+750
 600
 1000
 
@@ -21,6 +22,9 @@
 #OUTDIMM
 1 1 100
 
+#OUTDIMR
+1 1 100
+
 #P_bndry in [cm] {xmin xmax ymin ymax zmin zmax}
 -0.75 0.75 -0.75 0.75 0 20
 
@@ -32,3 +36,8 @@
 
 #M_bndry in [m] {xmin xmax ymin ymax zmin zmax}
 -0.0075 0.0075 -0.0075 0.0075 0 0.2
+
+#R_bndry in [m] {xmin xmax ymin ymax zmin zmax}
+-0.0075 0.0075 -0.0075 0.0075 0 0.2
+
+#Multilevel Flag = 1

@@ -16,6 +16,10 @@
 #define OUTDIMM1 1
 #define OUTDIMM2 100
 
+#define OUTDIMR0 1
+#define OUTDIMR1 1
+#define OUTDIMR2 100
+
 #define F_xmin -0.75
 #define F_xmax 0.75
 #define F_ymin -0.75
@@ -37,10 +41,20 @@
 #define M_zmin 0.0
 #define M_zmax 20.0
 
+#define R_xmin -0.75
+#define R_xmax 0.75
+#define R_ymin -0.75
+#define R_ymax 0.75
+#define R_zmin 0.0
+#define R_zmax 20.0
+
 #define INIT_temp_fuel 900.0
 #define INIT_temp_coolant 600.0
 #define INIT_r_coolant 1000.0
 #define INIT_temp_moderator 750.0
+#define INIT_temp_reflector 750.0
+
+int Multilevel_flag = 1;
 
 int main()
 {
@@ -50,6 +64,7 @@ int main()
 	hsize_t dim_F_data[3] = { OUTDIMF0,OUTDIMF1,OUTDIMF2 };
 	hsize_t dim_C_data[3] = { OUTDIMC0,OUTDIMC1,OUTDIMC2 };
 	hsize_t dim_M_data[3] = { OUTDIMM0,OUTDIMM1,OUTDIMM2 };
+	hsize_t dim_R_data[3] = { OUTDIMR0,OUTDIMR1,OUTDIMR2 };
 
 	int a[1] = { 1 }; // 1 for uniform mesh, 2 for the other
 
@@ -64,6 +79,10 @@ int main()
 	double M_geo_binnumber[3] = { OUTDIMM0,OUTDIMM1,OUTDIMM2 };
 	double M_geo_boundary[3][2] = { {M_xmin,M_xmax},{M_ymin,M_ymax},{M_zmin,M_zmax} };
 	double M_data[OUTDIMM0][OUTDIMM1][OUTDIMM2];
+
+	double R_geo_binnumber[3] = { OUTDIMR0,OUTDIMR1,OUTDIMR2 };
+	double R_geo_boundary[3][2] = { {R_xmin,R_xmax},{R_ymin,R_ymax},{R_zmin,R_zmax} };
+	double R_data[OUTDIMR0][OUTDIMR1][OUTDIMR2];
 	
 
 	//Write HDF5 file for fuel
@@ -96,6 +115,58 @@ int main()
 		}
 	}
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+
+	if (Multilevel_flag == 1){
+		dataset = H5Dcreate(file, "/temp_fuel1", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		for (int k = 0; k < OUTDIMF2; k++) {
+			for (int j = 0; j < OUTDIMF1; j++) {
+				for (int i = 0; i < OUTDIMF0; i++) {
+					F_data[i][j][k]=INIT_temp_fuel;
+				}
+			}
+		}
+		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+
+		dataset = H5Dcreate(file, "/temp_fuel2", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		for (int k = 0; k < OUTDIMF2; k++) {
+			for (int j = 0; j < OUTDIMF1; j++) {
+				for (int i = 0; i < OUTDIMF0; i++) {
+					F_data[i][j][k]=INIT_temp_fuel;
+				}
+			}
+		}
+		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+
+		dataset = H5Dcreate(file, "/temp_fuel3", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		for (int k = 0; k < OUTDIMF2; k++) {
+			for (int j = 0; j < OUTDIMF1; j++) {
+				for (int i = 0; i < OUTDIMF0; i++) {
+					F_data[i][j][k]=INIT_temp_fuel;
+				}
+			}
+		}
+		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+
+		dataset = H5Dcreate(file, "/temp_fuel4", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		for (int k = 0; k < OUTDIMF2; k++) {
+			for (int j = 0; j < OUTDIMF1; j++) {
+				for (int i = 0; i < OUTDIMF0; i++) {
+					F_data[i][j][k]=INIT_temp_fuel;
+				}
+			}
+		}
+		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+
+		dataset = H5Dcreate(file, "/temp_fuel5", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		for (int k = 0; k < OUTDIMF2; k++) {
+			for (int j = 0; j < OUTDIMF1; j++) {
+				for (int i = 0; i < OUTDIMF0; i++) {
+					F_data[i][j][k]=INIT_temp_fuel;
+				}
+			}
+		}
+		status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, F_data);
+	}
 
 	status = H5Gclose(group);
 	status = H5Sclose(space);
@@ -191,6 +262,43 @@ int main()
 	status = H5Dclose(dataset);
 	status = H5Fclose(file);
 	
+
+	// Write HDF5 file for reflector
+	file = H5Fcreate("info_reflector.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+	//Group
+	group = H5Gcreate(file, "/Geometry", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	//Attribute
+	space = H5Screate(H5S_SCALAR);
+	attr = H5Acreate(group, "MeshType", H5T_STD_I32BE, space, H5P_DEFAULT, H5P_DEFAULT);
+	status = H5Awrite(attr, H5T_NATIVE_INT, a);
+	//Geometry_Binnumber
+	space = H5Screate_simple(1, dim_BinNumber, NULL);
+	dataset = H5Dcreate(file, "/Geometry/BinNumber", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, R_geo_binnumber);
+	//Geometry_Boundary
+	space = H5Screate_simple(2, dim_Boundary, NULL);
+	dataset = H5Dcreate(file, "/Geometry/Boundary", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, R_geo_boundary);
+
+	//Dataset
+	space = H5Screate_simple(3, dim_R_data, NULL);
+	dataset = H5Dcreate(file, "/temp_reflector", H5T_IEEE_F64LE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+	for (int k = 0; k < OUTDIMR2; k++) {
+		for (int j = 0; j < OUTDIMR1; j++) {
+			for (int i = 0; i < OUTDIMR0; i++) {
+				R_data[i][j][k]=INIT_temp_reflector;
+			}
+		}
+	}
+	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, R_data);
+
+	status = H5Gclose(group);
+	status = H5Sclose(space);
+	status = H5Dclose(dataset);
+	status = H5Fclose(file);
+
 
 	return 0;
 }

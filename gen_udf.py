@@ -18,6 +18,8 @@ with open(coupling_path, 'r') as coupling_file:
             out_C_dim = lines[i+1].split()
         elif line.strip() == '#OUTDIMM':
             out_M_dim = lines[i+1].split()
+        elif line.strip() == '#OUTDIMR':
+            out_R_dim = lines[i+1].split()
         elif line.strip() == '#P_bndry in [cm] {xmin xmax ymin ymax zmin zmax}':
             P_bndry = lines[i+1].split()
         elif line.strip() == '#F_bndry in [m] {xmin xmax ymin ymax zmin zmax}':
@@ -26,7 +28,10 @@ with open(coupling_path, 'r') as coupling_file:
             C_bndry = lines[i+1].split()
         elif line.strip() == '#M_bndry in [m] {xmin xmax ymin ymax zmin zmax}':
             M_bndry = lines[i+1].split()
-
+        elif line.strip() == '#R_bndry in [m] {xmin xmax ymin ymax zmin zmax}':
+            R_bndry = lines[i+1].split()
+        elif line.startswith('#Multilevel Flag'):
+            flag = int(lines[i].split()[-1])
 
 
 # Part II. 替换 udf.c 文件中的宏定义
@@ -62,8 +67,12 @@ with open(udf_path, 'r', encoding='utf-8') as udf_file, open(temp_file_path, 'w'
             temp_file.write(f'#define OUTDIMM1 {out_M_dim[1]}\n')
         elif line.startswith('#define OUTDIMM2'):
             temp_file.write(f'#define OUTDIMM2 {out_M_dim[2]}\n')
-            
-        # 输出网格边界定义
+        elif line.startswith('#define OUTDIMR0'):
+            temp_file.write(f'#define OUTDIMR0 {out_R_dim[0]}\n')
+        elif line.startswith('#define OUTDIMR1'):
+            temp_file.write(f'#define OUTDIMR1 {out_R_dim[1]}\n')
+        elif line.startswith('#define OUTDIMR2'):
+            temp_file.write(f'#define OUTDIMR2 {out_R_dim[2]}\n')
         
         # 输出网格边界定义
         
@@ -92,7 +101,7 @@ with open(udf_path, 'r', encoding='utf-8') as udf_file, open(temp_file_path, 'w'
             temp_file.write(f'#define C_zmin {float(C_bndry[4])}\n')
         elif line.startswith('#define C_zmax'):
             temp_file.write(f'#define C_zmax {float(C_bndry[5])}\n')
-            
+
         elif line.startswith('#define M_xmin'):
             temp_file.write(f'#define M_xmin {float(M_bndry[0])}\n')
         elif line.startswith('#define M_xmax'):
@@ -105,7 +114,23 @@ with open(udf_path, 'r', encoding='utf-8') as udf_file, open(temp_file_path, 'w'
             temp_file.write(f'#define M_zmin {float(M_bndry[4])}\n')
         elif line.startswith('#define M_zmax'):
             temp_file.write(f'#define M_zmax {float(M_bndry[5])}\n')
-            
+
+        elif line.startswith('#define R_xmin'):
+            temp_file.write(f'#define R_xmin {float(R_bndry[0])}\n')
+        elif line.startswith('#define R_xmax'):
+            temp_file.write(f'#define R_xmax {float(R_bndry[1])}\n')
+        elif line.startswith('#define R_ymin'):
+            temp_file.write(f'#define R_ymin {float(R_bndry[2])}\n')
+        elif line.startswith('#define R_ymax'):
+            temp_file.write(f'#define R_ymax {float(R_bndry[3])}\n')
+        elif line.startswith('#define R_zmin'):
+            temp_file.write(f'#define R_zmin {float(R_bndry[4])}\n')
+        elif line.startswith('#define R_zmax'):
+            temp_file.write(f'#define R_zmax {float(R_bndry[5])}\n')
+
+        elif line.startswith('int Multilevel_flag'):
+            temp_file.write(f'int Multilevel_flag = {flag};\n')
+
         else:
             temp_file.write(line)
 
@@ -120,9 +145,9 @@ temp_file_path = h5rw_path + '.tmp'  # 创建一个临时文件用于修改
 
 with open(h5rw_path, 'r', encoding='utf-8') as h5rw_file, open(temp_file_path, 'w', encoding='utf-8') as temp_file:
     for line in h5rw_file:
-        
+
         # 网格划分数定义
-        
+
         if line.startswith('#define DIM0'):
             temp_file.write(f'#define DIM0 {dim[0]}\n')
         elif line.startswith('#define DIM1'):
@@ -147,6 +172,13 @@ with open(h5rw_path, 'r', encoding='utf-8') as h5rw_file, open(temp_file_path, '
             temp_file.write(f'#define OUTDIMM1 {out_M_dim[1]}\n')
         elif line.startswith('#define OUTDIMM2'):
             temp_file.write(f'#define OUTDIMM2 {out_M_dim[2]}\n')
+        elif line.startswith('#define OUTDIMR0'):
+            temp_file.write(f'#define OUTDIMR0 {out_R_dim[0]}\n')
+        elif line.startswith('#define OUTDIMR1'):
+            temp_file.write(f'#define OUTDIMR1 {out_R_dim[1]}\n')
+        elif line.startswith('#define OUTDIMR2'):
+            temp_file.write(f'#define OUTDIMR2 {out_R_dim[2]}\n')
+
         else:
             temp_file.write(line)
 
@@ -163,7 +195,7 @@ with open(init_path, 'r', encoding='utf-8') as init_file, open(temp_file_path, '
     for line in init_file:
 
         # 网格划分数定义
-        
+
         if line.startswith('#define OUTDIMF0'):
             temp_file.write(f'#define OUTDIMF0 {out_F_dim[0]}\n')
         elif line.startswith('#define OUTDIMF1'):
@@ -182,9 +214,15 @@ with open(init_path, 'r', encoding='utf-8') as init_file, open(temp_file_path, '
             temp_file.write(f'#define OUTDIMM1 {out_M_dim[1]}\n')
         elif line.startswith('#define OUTDIMM2'):
             temp_file.write(f'#define OUTDIMM2 {out_M_dim[2]}\n')
-            
+        elif line.startswith('#define OUTDIMR0'):
+            temp_file.write(f'#define OUTDIMR0 {out_R_dim[0]}\n')
+        elif line.startswith('#define OUTDIMR1'):
+            temp_file.write(f'#define OUTDIMR1 {out_R_dim[1]}\n')
+        elif line.startswith('#define OUTDIMR2'):
+            temp_file.write(f'#define OUTDIMR2 {out_R_dim[2]}\n')
+
         # 输出网格边界定义
-        
+
         elif line.startswith('#define F_xmin'):
             temp_file.write(f'#define F_xmin {float(F_bndry[0])*100}\n')
         elif line.startswith('#define F_xmax'):
@@ -210,7 +248,7 @@ with open(init_path, 'r', encoding='utf-8') as init_file, open(temp_file_path, '
             temp_file.write(f'#define C_zmin {float(C_bndry[4])*100}\n')
         elif line.startswith('#define C_zmax'):
             temp_file.write(f'#define C_zmax {float(C_bndry[5])*100}\n')
-            
+
         elif line.startswith('#define M_xmin'):
             temp_file.write(f'#define M_xmin {float(M_bndry[0])*100}\n')
         elif line.startswith('#define M_xmax'):
@@ -223,15 +261,34 @@ with open(init_path, 'r', encoding='utf-8') as init_file, open(temp_file_path, '
             temp_file.write(f'#define M_zmin {float(M_bndry[4])*100}\n')
         elif line.startswith('#define M_zmax'):
             temp_file.write(f'#define M_zmax {float(M_bndry[5])*100}\n')
-            
+
+        elif line.startswith('#define R_xmin'):
+            temp_file.write(f'#define R_xmin {float(R_bndry[0])*100}\n')
+        elif line.startswith('#define R_xmax'):
+            temp_file.write(f'#define R_xmax {float(R_bndry[1])*100}\n')
+        elif line.startswith('#define R_ymin'):
+            temp_file.write(f'#define R_ymin {float(R_bndry[2])*100}\n')
+        elif line.startswith('#define R_ymax'):
+            temp_file.write(f'#define R_ymax {float(R_bndry[3])*100}\n')
+        elif line.startswith('#define R_zmin'):
+            temp_file.write(f'#define R_zmin {float(R_bndry[4])*100}\n')
+        elif line.startswith('#define R_zmax'):
+            temp_file.write(f'#define R_zmax {float(R_bndry[5])*100}\n')
+
         elif line.startswith('#define INIT_temp_fuel'):
             temp_file.write(f'#define INIT_temp_fuel {float(lines[6])}\n')
         elif line.startswith('#define INIT_temp_moderator'):
             temp_file.write(f'#define INIT_temp_moderator {float(lines[7])}\n')
+        elif line.startswith('#define INIT_temp_reflector'):
+            temp_file.write(f'#define INIT_temp_reflector {float(lines[8])}\n')
         elif line.startswith('#define INIT_temp_coolant'):
-            temp_file.write(f'#define INIT_temp_coolant {float(lines[8])}\n')
+            temp_file.write(f'#define INIT_temp_coolant {float(lines[9])}\n')
         elif line.startswith('#define INIT_r_coolant'):
-            temp_file.write(f'#define INIT_r_coolant {float(lines[9])}\n')
+            temp_file.write(f'#define INIT_r_coolant {float(lines[10])}\n')
+
+        elif line.startswith('int Multilevel_flag'):
+            temp_file.write(f'int Multilevel_flag = {flag};\n')
+
         else:
             temp_file.write(line)
 
@@ -253,9 +310,9 @@ temp_file_path = rmc_path + '.tmp'  # 创建一个临时文件用于修改
 
 with open(rmc_path, 'r', encoding='utf-8') as rmc_file, open(temp_file_path, 'w', encoding='utf-8') as temp_file:
     for line in rmc_file:
-        
+
         # 网格划分数定义
-        
+
         if line.startswith('                    Bound ='):
             temp_file.write(f'                    Bound = {P_bndry[0]} {P_bndry[1]} {P_bndry[2]} {P_bndry[3]} {P_bndry[4]} {P_bndry[5]}\n')
         elif line.startswith('                    Scope ='):

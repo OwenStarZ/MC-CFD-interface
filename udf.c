@@ -5,8 +5,10 @@
 
 extern void ReadRMCPowerTally(real b[], real p[]);
 extern void WriteFuelData(real data[]);
+extern void WriteFuelData_Multilevel(double data1[], double data2[]);
 extern void WriteModeratorData(real data[]);
 extern void WriteCoolantData(real data1[], real data2[]);
+extern void WriteReflectorData(double data[]);
 
 /*******************Auto changed by py script*******************/
 
@@ -16,41 +18,55 @@ extern void WriteCoolantData(real data1[], real data2[]);
 #define DIM2 100
 
 //Output for Fuel temp
-#define OUTDIMF0 15
-#define OUTDIMF1 15
-#define OUTDIMF2 40
+#define OUTDIMF0 8
+#define OUTDIMF1 8
+#define OUTDIMF2 100
 
 //Output for Coolant temp and dens
-#define OUTDIMC0 15
-#define OUTDIMC1 15
-#define OUTDIMC2 40
+#define OUTDIMC0 8
+#define OUTDIMC1 8
+#define OUTDIMC2 100
 
 //Output for Moderator temp
-#define OUTDIMM0 15
-#define OUTDIMM1 15
-#define OUTDIMM2 40
+#define OUTDIMM0 1
+#define OUTDIMM1 1
+#define OUTDIMM2 100
+
+//Output for Reflector temp
+#define OUTDIMR0 1
+#define OUTDIMR1 1
+#define OUTDIMR2 100
 
 //output mesh bndry
-#define F_xmin -0.01
-#define F_xmax 0.01
-#define F_ymin -0.01
-#define F_ymax 0.01
-#define F_zmin 0
-#define F_zmax 0.5
+#define F_xmin -0.0075
+#define F_xmax 0.0075
+#define F_ymin -0.0075
+#define F_ymax 0.0075
+#define F_zmin 0.0
+#define F_zmax 0.2
 
-#define C_xmin -0.01
-#define C_xmax 0.01
-#define C_ymin -0.01
-#define C_ymax 0.01
-#define C_zmin 0
-#define C_zmax 0.5
+#define C_xmin -0.0075
+#define C_xmax 0.0075
+#define C_ymin -0.0075
+#define C_ymax 0.0075
+#define C_zmin 0.0
+#define C_zmax 0.2
 
-#define M_xmin -0.01
-#define M_xmax 0.01
-#define M_ymin -0.01
-#define M_ymax 0.01
-#define M_zmin 0
-#define M_zmax 0.5
+#define M_xmin -0.0075
+#define M_xmax 0.0075
+#define M_ymin -0.0075
+#define M_ymax 0.0075
+#define M_zmin 0.0
+#define M_zmax 0.2
+
+#define R_xmin -0.0075
+#define R_xmax 0.0075
+#define R_ymin -0.0075
+#define R_ymax 0.0075
+#define R_zmin 0.0
+#define R_zmax 0.2
+
+int Multilevel_flag = 1;
 
 /*******************Auto changed by py script*******************/
 
@@ -92,11 +108,16 @@ int GetIndexByPos(int bin_num, real* nums, real pos)
 }*/
 
 //suitable for meshtype1
-int GetIndexByPos(real h, real xmin, real pos)
+int GetIndexByPos(real h, real xmin, real xmax, real pos)
 {
-	int index;
-	index = (int)((pos-xmin)/h);
-	return index;
+	if (pos < xmin || pos > xmax){
+		return -1;
+	}
+	else{
+		int index;
+		index = (int)((pos-xmin)/h);
+		return index;
+	}
 }
 
 DEFINE_INIT(read_power, d)
@@ -195,11 +216,13 @@ DEFINE_INIT(read_power, d)
 		begin_c_loop_int(c, t)
 		{
             C_CENTROID(x, c, t);
-            ix = GetIndexByPos(hx, fluent_bndry_x[0], x[0]);
-            iy = GetIndexByPos(hy, fluent_bndry_y[0], x[1]);
-            iz = GetIndexByPos(hz, fluent_bndry_z[0], x[2]);
-			vol = C_VOLUME(c, t);
-		    vol_fuel[ix+DIM0*iy+DIM0*DIM1*iz] += vol;
+            ix = GetIndexByPos(hx, fluent_bndry_x[0], fluent_bndry_x[1], x[0]);
+            iy = GetIndexByPos(hy, fluent_bndry_y[0], fluent_bndry_y[1], x[1]);
+            iz = GetIndexByPos(hz, fluent_bndry_z[0], fluent_bndry_z[1], x[2]);
+			if (ix>=0 && iy>=0 && iz>=0){
+				vol = C_VOLUME(c, t);
+				vol_fuel[ix+DIM0*iy+DIM0*DIM1*iz] += vol;
+			}
 		}
 		end_c_loop_int(c, t)
     }
@@ -225,10 +248,15 @@ DEFINE_SOURCE(fuel_power, cell, thread, dS, eqn)
 	int ix, iy, iz;
 	real x[ND_ND];
     C_CENTROID(x, cell, thread);
-    ix = GetIndexByPos(hx, fluent_bndry_x[0], x[0]);
-    iy = GetIndexByPos(hy, fluent_bndry_y[0], x[1]);
-    iz = GetIndexByPos(hz, fluent_bndry_z[0], x[2]);
-    source = rmc_power[ix+DIM0*iy+DIM0*DIM1*iz];
+    ix = GetIndexByPos(hx, fluent_bndry_x[0], fluent_bndry_x[1], x[0]);
+    iy = GetIndexByPos(hy, fluent_bndry_y[0], fluent_bndry_y[1], x[1]);
+    iz = GetIndexByPos(hz, fluent_bndry_z[0], fluent_bndry_z[1], x[2]);
+	if (ix>=0 && iy>=0 && iz>=0){
+		source = rmc_power[ix+DIM0*iy+DIM0*DIM1*iz];
+	}
+    else{
+		source = 0.0;
+	}
 	dS[eqn] = 0.;
 	return source;
 }
@@ -254,28 +282,36 @@ DEFINE_SOURCE(fuel_power, cell, thread, dS, eqn)
 DEFINE_EXECUTE_AT_END(cal_th)
 {
     int ix, iy, iz;
+	int jx, jy, jz;
 
 	real cnt_vol_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_vol_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real cnt_vol_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
+	real cnt_vol_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
+    real cnt_power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real cnt_temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
+	real cnt_temp_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
 	real cnt_dens_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real F_iwork[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real C_iwork[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real M_iwork[OUTDIMM0*OUTDIMM1*OUTDIMM2];
+	real R_iwork[OUTDIMR0*OUTDIMR1*OUTDIMR2];
 	
 	#if RP_HOST // RP_HOST
 		// OUTPUT
+        real power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 		real temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 		real temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 		real temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
+		real temp_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
 		real dens_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 		real foo; 
 		// unit in K, kg/m^3
 		real default_temp_fuel;
 		real default_temp_moderator;
+		real default_temp_reflector;
 		real default_temp_fluid;
 		real default_dens_fluid;
 		// Read from coupling.dat
@@ -289,6 +325,7 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		fscanf(fp, "%lf", &foo); // &move_ori_z
 		fscanf(fp, "%lf", &default_temp_fuel);
 		fscanf(fp, "%lf", &default_temp_moderator);
+		fscanf(fp, "%lf", &default_temp_reflector);
 		fscanf(fp, "%lf", &default_temp_fluid);
 		fscanf(fp, "%lf", &default_dens_fluid);
 		fclose(fp);
@@ -297,12 +334,14 @@ DEFINE_EXECUTE_AT_END(cal_th)
 	real size_F_mesh = OUTDIMF0*OUTDIMF1*OUTDIMF2;
 	real size_C_mesh = OUTDIMC0*OUTDIMC1*OUTDIMC2;
 	real size_M_mesh = OUTDIMM0*OUTDIMM1*OUTDIMM2;
+	real size_R_mesh = OUTDIMR0*OUTDIMR1*OUTDIMR2;
 	real zero = 1.e-10;
 	
 	// initialize
 	for (ix = 0; ix < size_F_mesh; ix++){
 		cnt_vol_fuel[ix] = 0.0;
 		cnt_temp_fuel[ix] = 0.0;
+		cnt_power_fuel[ix]= 0.0;
 		F_iwork[ix] = 0.0;
 	}
 	for (ix = 0; ix < size_C_mesh; ix++){
@@ -315,6 +354,11 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		cnt_vol_moderator[ix] = 0.0;
 		cnt_temp_moderator[ix] = 0.0;
 		M_iwork[ix] = 0.0;
+	}
+	for (ix = 0; ix < size_R_mesh; ix++){
+		cnt_vol_reflector[ix] = 0.0;
+		cnt_temp_reflector[ix] = 0.0;
+		R_iwork[ix] = 0.0;
 	}
 	
 	#if !RP_HOST		
@@ -331,6 +375,9 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		int M_bin_x = OUTDIMM0;
 		int M_bin_y = OUTDIMM1;
 		int M_bin_z = OUTDIMM2;
+		int R_bin_x = OUTDIMR0;
+		int R_bin_y = OUTDIMR1;
+		int R_bin_z = OUTDIMR2;
 		real F_bndry_x[2] = {F_xmin, F_xmax};
 		real F_bndry_y[2] = {F_ymin, F_ymax};
 		real F_bndry_z[2] = {F_zmin, F_zmax};
@@ -340,6 +387,9 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		real M_bndry_x[2] = {M_xmin, M_xmax};
 		real M_bndry_y[2] = {M_ymin, M_ymax};
 		real M_bndry_z[2] = {M_zmin, M_zmax};
+		real R_bndry_x[2] = {R_xmin, R_xmax};
+		real R_bndry_y[2] = {R_ymin, R_ymax};
+		real R_bndry_z[2] = {R_zmin, R_zmax};
         real F_hx = (F_bndry_x[1] - F_bndry_x[0]) / F_bin_x;
         real F_hy = (F_bndry_y[1] - F_bndry_y[0]) / F_bin_y;
         real F_hz = (F_bndry_z[1] - F_bndry_z[0]) / F_bin_z;
@@ -349,31 +399,47 @@ DEFINE_EXECUTE_AT_END(cal_th)
         real M_hx = (M_bndry_x[1] - M_bndry_x[0]) / M_bin_x;
         real M_hy = (M_bndry_y[1] - M_bndry_y[0]) / M_bin_y;
         real M_hz = (M_bndry_z[1] - M_bndry_z[0]) / M_bin_z;
+        real R_hx = (R_bndry_x[1] - R_bndry_x[0]) / R_bin_x;
+        real R_hy = (R_bndry_y[1] - R_bndry_y[0]) / R_bin_y;
+        real R_hz = (R_bndry_z[1] - R_bndry_z[0]) / R_bin_z;
 
-		// Fuel cell 
+	
         Domain *d = Get_Domain(1);
         cell_t c;
         Thread *t;
         int ID_fuel[1] = {7}; /******************* Change this !*******************/
         int ID_fluid[1] = {6}; /******************* Change this !*******************/
         int ID_moderator[1] = {8}; /******************* Change this !*******************/
-        real x[ND_ND];
+        int ID_reflector[1] = {8}; /******************* Change this !*******************/
+		real x[ND_ND];
         real vol;
+
+		// Fuel cell 
         /******************* Change this !*******************/
-        for (i = 0; i < 1; i++){
-            t = Lookup_Thread(d, ID_fuel[i]);
-		    begin_c_loop_int(c, t)
-		    {
-                C_CENTROID(x, c, t);
-                ix = GetIndexByPos(F_hx, F_bndry_x[0], x[0]);
-                iy = GetIndexByPos(F_hy, F_bndry_y[0], x[1]);
-                iz = GetIndexByPos(F_hz, F_bndry_z[0], x[2]);
-			    vol = C_VOLUME(c, t);
-			    cnt_vol_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += vol;
-			    cnt_temp_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += C_T(c, t) * vol;
-		    }
-		    end_c_loop_int(c, t)
-        }
+		for (i = 0; i < 1; i++){
+			t = Lookup_Thread(d, ID_fuel[i]);
+			begin_c_loop_int(c, t)
+			{
+				C_CENTROID(x, c, t);
+				ix = GetIndexByPos(F_hx, F_bndry_x[0], F_bndry_x[1], x[0]);
+				iy = GetIndexByPos(F_hy, F_bndry_y[0], F_bndry_y[1], x[1]);
+				iz = GetIndexByPos(F_hz, F_bndry_z[0], F_bndry_z[1], x[2]);
+				if (ix>=0 && iy>=0 && iz>=0){
+					vol = C_VOLUME(c, t);
+					cnt_vol_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += vol;
+					cnt_temp_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += C_T(c, t) * vol;
+					if (Multilevel_flag == 1){
+						jx = GetIndexByPos(hx, fluent_bndry_x[0], fluent_bndry_x[1], x[0]);
+						jy = GetIndexByPos(hy, fluent_bndry_y[0], fluent_bndry_y[1], x[1]);
+						jz = GetIndexByPos(hz, fluent_bndry_z[0], fluent_bndry_z[1], x[2]);
+						if (jx>=0 && jy>=0 && jz>=0){
+							cnt_power_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += rmc_power[jx+DIM0*jy+DIM0*DIM1*jz] * vol;
+						}
+					}
+				}
+			}
+			end_c_loop_int(c, t)
+		}
         
 		// Fluid cell 
 		/******************* Change this !*******************/
@@ -382,13 +448,15 @@ DEFINE_EXECUTE_AT_END(cal_th)
 			begin_c_loop_int(c, t)
 			{	
             	C_CENTROID(x, c, t);
-           		ix = GetIndexByPos(C_hx, C_bndry_x[0], x[0]);
-            	iy = GetIndexByPos(C_hy, C_bndry_y[0], x[1]);
-            	iz = GetIndexByPos(C_hz, C_bndry_z[0], x[2]);
-				vol = C_VOLUME(c, t);
-				cnt_vol_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += vol;
-				cnt_temp_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += C_T(c, t) * vol;
-				cnt_dens_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += C_R(c, t) * vol;
+           		ix = GetIndexByPos(C_hx, C_bndry_x[0], C_bndry_x[1], x[0]);
+            	iy = GetIndexByPos(C_hy, C_bndry_y[0], C_bndry_y[1], x[1]);
+            	iz = GetIndexByPos(C_hz, C_bndry_z[0], C_bndry_z[1], x[2]);
+				if (ix>=0 && iy>=0 && iz>=0){
+					vol = C_VOLUME(c, t);
+					cnt_vol_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += vol;
+					cnt_temp_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += C_T(c, t) * vol;
+					cnt_dens_fluid[ix+OUTDIMC0*iy+OUTDIMC0*OUTDIMC1*iz] += C_R(c, t) * vol;
+				}
 			}
 			end_c_loop_int(c, t)
 		}
@@ -400,14 +468,35 @@ DEFINE_EXECUTE_AT_END(cal_th)
 			begin_c_loop_int(c, t)
 			{
         		C_CENTROID(x, c, t);
-        		ix = GetIndexByPos(M_hx, M_bndry_x[0], x[0]);
-        		iy = GetIndexByPos(M_hy, M_bndry_y[0], x[1]);
-        		iz = GetIndexByPos(M_hz, M_bndry_z[0], x[2]);
-				vol = C_VOLUME(c, t);
-				cnt_vol_moderator[ix+OUTDIMM0*iy+OUTDIMM0*OUTDIMM1*iz] += vol;
-				cnt_temp_moderator[ix+OUTDIMM0*iy+OUTDIMM0*OUTDIMM1*iz] += C_T(c, t) * vol;
+        		ix = GetIndexByPos(M_hx, M_bndry_x[0], M_bndry_x[1], x[0]);
+        		iy = GetIndexByPos(M_hy, M_bndry_y[0], M_bndry_y[1], x[1]);
+        		iz = GetIndexByPos(M_hz, M_bndry_z[0], M_bndry_z[1], x[2]);
+				if (ix>=0 && iy>=0 && iz>=0){
+					vol = C_VOLUME(c, t);
+					cnt_vol_moderator[ix+OUTDIMM0*iy+OUTDIMM0*OUTDIMM1*iz] += vol;
+					cnt_temp_moderator[ix+OUTDIMM0*iy+OUTDIMM0*OUTDIMM1*iz] += C_T(c, t) * vol;
+				}
 			}
-			end_c_loop_int(c, t_moderator)
+			end_c_loop_int(c, t)
+		}
+
+		//reflector cell 
+		/******************* Change this !*******************/
+		for (i = 0; i < 1 ; i++){
+			t = Lookup_Thread(d, ID_reflector[i]);
+			begin_c_loop_int(c, t)
+			{
+        		C_CENTROID(x, c, t);
+        		ix = GetIndexByPos(R_hx, R_bndry_x[0], R_bndry_x[1], x[0]);
+        		iy = GetIndexByPos(R_hy, R_bndry_y[0], R_bndry_y[1], x[1]);
+        		iz = GetIndexByPos(R_hz, R_bndry_z[0], R_bndry_z[1], x[2]);
+				if (ix>=0 && iy>=0 && iz>=0){
+					vol = C_VOLUME(c, t);
+					cnt_vol_reflector[ix+OUTDIMR0*iy+OUTDIMR0*OUTDIMR1*iz] += vol;
+					cnt_temp_reflector[ix+OUTDIMR0*iy+OUTDIMR0*OUTDIMR1*iz] += C_T(c, t) * vol;
+				}
+			}
+			end_c_loop_int(c, t)
 		}
 				
 	#endif // !RP_HOST
@@ -417,17 +506,23 @@ DEFINE_EXECUTE_AT_END(cal_th)
 	PRF_GRSUM(cnt_vol_fuel, size_F_mesh, F_iwork);
 	PRF_GRSUM(cnt_vol_fluid, size_C_mesh, C_iwork);
 	PRF_GRSUM(cnt_vol_moderator, size_M_mesh, M_iwork);
+	PRF_GRSUM(cnt_vol_reflector, size_R_mesh, R_iwork);
 	PRF_GRSUM(cnt_temp_fuel, size_F_mesh, F_iwork);
+	PRF_GRSUM(cnt_power_fuel, size_F_mesh, F_iwork);
 	PRF_GRSUM(cnt_temp_fluid, size_C_mesh, C_iwork);
 	PRF_GRSUM(cnt_temp_moderator, size_M_mesh, M_iwork);
+	PRF_GRSUM(cnt_temp_reflector, size_R_mesh, R_iwork);
 	PRF_GRSUM(cnt_dens_fluid, size_C_mesh, C_iwork);
 	
 	node_to_host_real(cnt_vol_fuel, size_F_mesh);
 	node_to_host_real(cnt_vol_fluid, size_C_mesh);
 	node_to_host_real(cnt_vol_moderator, size_M_mesh);
+	node_to_host_real(cnt_vol_reflector, size_R_mesh);
 	node_to_host_real(cnt_temp_fuel, size_F_mesh);
+	node_to_host_real(cnt_power_fuel, size_F_mesh);
 	node_to_host_real(cnt_temp_fluid, size_C_mesh);
 	node_to_host_real(cnt_temp_moderator, size_M_mesh);
+	node_to_host_real(cnt_temp_reflector, size_R_mesh);
 	node_to_host_real(cnt_dens_fluid, size_C_mesh);
 	
 	#if RP_HOST // RP_HOST
@@ -435,8 +530,14 @@ DEFINE_EXECUTE_AT_END(cal_th)
     for (ix = 0; ix < OUTDIMF0*OUTDIMF1*OUTDIMF2; ix++){
         if (cnt_vol_fuel[ix] < zero) {
             temp_fuel[ix] = default_temp_fuel;
+			if (Multilevel_flag == 1){
+				power_fuel[ix] = 0.0;
+			}
         }else{
 			temp_fuel[ix] = cnt_temp_fuel[ix] / cnt_vol_fuel[ix];
+			if (Multilevel_flag == 1){
+				power_fuel[ix] = cnt_power_fuel[ix] / cnt_vol_fuel[ix] / 0.05108;
+			}
 		}
 	}
 		// Fluid temp and dens
@@ -457,11 +558,25 @@ DEFINE_EXECUTE_AT_END(cal_th)
 			temp_moderator[ix] = cnt_temp_moderator[ix] / cnt_vol_moderator[ix];
 		}
     }
+		// reflector temp
+	for (ix = 0; ix < OUTDIMR0*OUTDIMR1*OUTDIMR2; ix++){
+		if (cnt_vol_reflector[ix] < zero) {
+			temp_reflector[ix] = default_temp_reflector;
+		}else{
+			temp_reflector[ix] = cnt_temp_reflector[ix] / cnt_vol_reflector[ix];
+		}
+    }
 		
 		// Write data to h5Files 
-		WriteFuelData(temp_fuel);
+		if (Multilevel_flag == 1){
+			WriteFuelData_Multilevel(temp_fuel, power_fuel);
+		}
+		else{
+			WriteFuelData(temp_fuel);
+		}
 		WriteModeratorData(temp_moderator);
 		WriteCoolantData(temp_fluid, dens_fluid);
+		WriteReflectorData(temp_reflector);
 		
 	#endif // RP_HOST
 	
