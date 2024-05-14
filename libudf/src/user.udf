@@ -1,0 +1,17 @@
+###########################################################
+##
+## Copyright 1987-2021 ANSYS, Inc. All Rights Reserved. 
+## All Rights Reserved  
+##
+###########################################################
+# 
+# purpose:
+#    This file is an include file for the makefile for Linux UDF builds.
+#
+# usage:
+#    Put this file in the same dir as the makefile.
+###########################################################
+
+CSOURCES = udf.c
+HSOURCES = udf.h
+FLUENT_INC=/home/lenovo/Programfiles/ansys_inc/v211/fluent

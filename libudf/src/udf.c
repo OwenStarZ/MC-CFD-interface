@@ -4,30 +4,33 @@
 #include "stdlib.h"
 
 extern void ReadRMCPowerTally(real b[], real p[]);
-extern void WriteFuelData(real data1[], real data2[]);
+extern void WriteFuelData(real data[]);
 extern void WriteModeratorData(real data[]);
 extern void WriteCoolantData(real data1[], real data2[]);
 
 /*******************change this dims for reading power*******************/
 
-#define DIM0  8
-#define DIM1  8
-#define DIM2  100
+#define DIM0 8
+#define DIM1 8
+#define DIM2 100
 
 /*******************change this for output*******************/
 /*******************also change this for multi-output meshes!*******************/
 
-#define OUTDIMF0  8
-#define OUTDIMF1  8
-#define OUTDIMF2  100 //Output for Fuel temp
+#define OUTDIMF0 15
+#define OUTDIMF1 15
+#define OUTDIMF2 40
+//Output for Fuel temp
 
-#define OUTDIMC0  8
-#define OUTDIMC1  8
-#define OUTDIMC2  100 //Output for Coolant temp and dens
+#define OUTDIMC0 15
+#define OUTDIMC1 15
+#define OUTDIMC2 40
+//Output for Coolant temp and dens
 
-#define OUTDIMM0  1
-#define OUTDIMM1  1
-#define OUTDIMM2  100 //Output for Moderator temp*/
+#define OUTDIMM0 15
+#define OUTDIMM1 15
+#define OUTDIMM2 40
+//Output for Moderator temp
 
 real rmc_bndry[6];
 real rmc_power[DIM0*DIM1*DIM2];
@@ -114,7 +117,7 @@ DEFINE_INIT(read_power, d)
 		Message("\n start reading power... \n");
 		ReadRMCPowerTally(rmc_bndry, rmc_power);
 		Message("\n power transfered \n");
-		
+
 		for (iz = 0; iz < DIM2; iz++){
             for (iy = 0; iy < DIM1; iy++){
                 for(ix = 0; ix < DIM0; ix++){
@@ -226,17 +229,15 @@ DEFINE_SOURCE(fuel_power, cell, thread, dS, eqn)
 	return source;
 }*/
 
-DEFINE_EXECUTE_AT_END(cal_TH)
+DEFINE_EXECUTE_AT_END(cal_th)
 {
     int ix, iy, iz;
-	int jx, jy, jz;
 
 	/*******************Change the dimensions for multi-output meshes!*******************/
 
 	real cnt_vol_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_vol_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real cnt_vol_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
-    real cnt_power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 	real cnt_temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 	real cnt_temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
@@ -249,7 +250,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 		// OUTPUT
 		/*******************Change the dimensions for multi-output meshes!*******************/
 		real temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-        real power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
 		real temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
 		real temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
 		real dens_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
@@ -286,7 +286,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 	for (ix = 0; ix < size_F_mesh; ix++){
 		cnt_vol_fuel[ix] = 0.0;
 		cnt_temp_fuel[ix] = 0.0;
-		cnt_power_fuel[ix] = 0.0;
 		F_iwork[ix] = 0.0;
 	}
 	for (ix = 0; ix < size_C_mesh; ix++){
@@ -352,13 +351,9 @@ DEFINE_EXECUTE_AT_END(cal_TH)
                 ix = GetIndexByPos(F_hx, F_bndry_x[0], x[0]);
                 iy = GetIndexByPos(F_hy, F_bndry_y[0], x[1]);
                 iz = GetIndexByPos(F_hz, F_bndry_z[0], x[2]);
-                jx = GetIndexByPos(hx, fluent_bndry_x[0], x[0]);
-                jy = GetIndexByPos(hy, fluent_bndry_y[0], x[1]);
-                jz = GetIndexByPos(hz, fluent_bndry_z[0], x[2]);
 			    vol = C_VOLUME(c, t);
 			    cnt_vol_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += vol;
 			    cnt_temp_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += C_T(c, t) * vol;
-                cnt_power_fuel[ix+OUTDIMF0*iy+OUTDIMF0*OUTDIMF1*iz] += rmc_power[jx+DIM0*jy+DIM0*DIM1*jz] * vol;
 		    }
 		    end_c_loop_int(c, t)
         }
@@ -406,7 +401,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 	PRF_GRSUM(cnt_vol_fluid, size_C_mesh, C_iwork);
 	PRF_GRSUM(cnt_vol_moderator, size_M_mesh, M_iwork);
 	PRF_GRSUM(cnt_temp_fuel, size_F_mesh, F_iwork);
-	PRF_GRSUM(cnt_power_fuel, size_F_mesh, F_iwork);
 	PRF_GRSUM(cnt_temp_fluid, size_C_mesh, C_iwork);
 	PRF_GRSUM(cnt_temp_moderator, size_M_mesh, M_iwork);
 	PRF_GRSUM(cnt_dens_fluid, size_C_mesh, C_iwork);
@@ -415,7 +409,6 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 	node_to_host_real(cnt_vol_fluid, size_C_mesh);
 	node_to_host_real(cnt_vol_moderator, size_M_mesh);
 	node_to_host_real(cnt_temp_fuel, size_F_mesh);
-	node_to_host_real(cnt_power_fuel, size_F_mesh);
 	node_to_host_real(cnt_temp_fluid, size_C_mesh);
 	node_to_host_real(cnt_temp_moderator, size_M_mesh);
 	node_to_host_real(cnt_dens_fluid, size_C_mesh);
@@ -425,10 +418,8 @@ DEFINE_EXECUTE_AT_END(cal_TH)
     for (ix = 0; ix < OUTDIMF0*OUTDIMF1*OUTDIMF2; ix++){
         if (cnt_vol_fuel[ix] < zero) {
             temp_fuel[ix] = default_temp_fuel;
-			power_fuel[ix] = 0.0;
         }else{
 			temp_fuel[ix] = cnt_temp_fuel[ix] / cnt_vol_fuel[ix];
-			power_fuel[ix] = cnt_power_fuel[ix] / cnt_vol_fuel[ix] / 0.05108;
 		}
 	}
 		// Fluid temp and dens
@@ -451,7 +442,7 @@ DEFINE_EXECUTE_AT_END(cal_TH)
     }
 		
 		// Write data to h5Files 
-		WriteFuelData(temp_fuel, power_fuel);
+		WriteFuelData(temp_fuel);
 		WriteModeratorData(temp_moderator);
 		WriteCoolantData(temp_fluid, dens_fluid);
 		

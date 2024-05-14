@@ -1,35 +1,33 @@
-/* Date: 2023/03 */
-/* Author: Owen Zhao */
-/* Thanks to GuoDong Liu */
-
 #include "udf.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 
-//extern void ReadRMCPower(real *argin1, real *argin2, real *argin3);
-//extern void WriteFluentData(char *argin1, real *argin2);
+extern void ReadRMCPowerTally(real b[], real p[]);
+extern void WriteFuelData(real data[]);
+extern void WriteModeratorData(real data[]);
+extern void WriteCoolantData(real data1[], real data2[]);
 
 /*******************change this dims for reading power*******************/
 
-#define DIM0  15
-#define DIM1  15
-#define DIM2  40
+#define DIM0  8
+#define DIM1  8
+#define DIM2  100
 
 /*******************change this for output*******************/
 /*******************also change this for multi-output meshes!*******************/
 
-#define OUTDIMF0  15
-#define OUTDIMF1  15
-#define OUTDIMF2  40 //Output for Fuel temp
+#define OUTDIMF0  8
+#define OUTDIMF1  8
+#define OUTDIMF2  100 //Output for Fuel temp
 
-#define OUTDIMC0  15
-#define OUTDIMC1  15
-#define OUTDIMC2  40 //Output for Coolant temp and dens
+#define OUTDIMC0  8
+#define OUTDIMC1  8
+#define OUTDIMC2  100 //Output for Coolant temp and dens
 
 #define OUTDIMM0  1
 #define OUTDIMM1  1
-#define OUTDIMM2  40 //Output for Moderator temp
+#define OUTDIMM2  100 //Output for Moderator temp*/
 
 real rmc_bndry[6];
 real rmc_power[DIM0*DIM1*DIM2];
@@ -41,52 +39,8 @@ real fluent_bndry_y[2];
 real fluent_bndry_z[2];
 real hx, hy, hz;
 
-/******************* no need to change functions！*******************/
+/*******************no need to change functions！*******************/
 
-void ReadRMCPowerTally(real b[], real p[])
-{
-    FILE* fp;
-	//i for coordinates，j for min and max
-	if ((fp = fopen("RMCPower.dat", "r")) == NULL)
-	{
-		puts("can't be opened"); exit(0);
-	}
-
-	real total = 0;
-	for (int i = 0; i < 6; i++) {
-		fscanf(fp, "%lf", &b[i]); //xmin, ymin, zmin, xmax, ymax, zmax
-	}
-	
-	for (int k = 0; k < DIM2; k++) {
-		for (int j = 0; j < DIM1; j++) {
-			for (int i = 0; i < DIM0; i++) {
-				fscanf(fp, "%lf", &p[i + DIM0 * j + DIM0 * DIM1 * k]);
-				total += p[i + DIM0 * j + DIM0 * DIM1 * k];
-			}
-		}
-	}
-	for (int k = 0; k < DIM2; k++) {
-		for (int j = 0; j < DIM1; j++) {
-			for (int i = 0; i < DIM0; i++) {
-				p[i + DIM0 * j + DIM0 * DIM1 * k] /= total;
-			}
-		}
-	}
-	fclose(fp);
-}
-
-void WriteFluentData(char *a, real k[], int DIM)
-{
-	FILE *fp;
-	if ((fp = fopen(a, "w")) == NULL)
-	{
-		puts("can't be opened"); exit(0);
-	}
-	for (int i = 0; i < DIM; i++) {
-		fprintf(fp, "%lf\n", k[i]);
-	}
-	fclose(fp);
-}
 /*
 // Binary search
 // Get mesh index by real position, suitable for meshtype2
@@ -157,8 +111,10 @@ DEFINE_INIT(read_power, d)
 		fscanf(fp, "%lf", &move_ori_z);
 		fclose(fp);
 		
+		Message("\n start reading power... \n");
 		ReadRMCPowerTally(rmc_bndry, rmc_power);
-		
+		Message("\n power transfered \n");
+
 		for (iz = 0; iz < DIM2; iz++){
             for (iy = 0; iy < DIM1; iy++){
                 for(ix = 0; ix < DIM0; ix++){
@@ -482,16 +438,10 @@ DEFINE_EXECUTE_AT_END(cal_TH)
 		}
     }
 		
-		// Write data to Files 
-		char ds_temp_fuel[20] = { "tempfuel.dat" };
-		char ds_temp_moderator[20] = { "tempmoderator.dat" };
-		char ds_temp_fluid[20] = { "tempcoolant.dat" };
-		char ds_dens_fluid[20] = { "rcoolant.dat" };
-		
-		WriteFluentData(ds_temp_fuel, temp_fuel, OUTDIMF0*OUTDIMF1*OUTDIMF2); //txt, cannot output hdf5 directly
-		WriteFluentData(ds_temp_moderator, temp_moderator, OUTDIMM0*OUTDIMM1*OUTDIMM2);
-		WriteFluentData(ds_temp_fluid, temp_fluid, OUTDIMC0*OUTDIMC1*OUTDIMC2);
-		WriteFluentData(ds_dens_fluid, dens_fluid, OUTDIMC0*OUTDIMC1*OUTDIMC2);
+		// Write data to h5Files 
+		WriteFuelData(temp_fuel);
+		WriteModeratorData(temp_moderator);
+		WriteCoolantData(temp_fluid, dens_fluid);
 		
 	#endif // RP_HOST
 	
