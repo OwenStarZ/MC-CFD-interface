@@ -44,4 +44,12 @@
 
 #Omega = 0.5
 
-#Residual = -1
+#SOR flag for th_calculation = 1
+
+#Residual factor = 3.0
+
+#Parallel processes for RMC = 100
+
+#Parallel processes for Fluent = 50
+
+#Output all iter flag = 1
