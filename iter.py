@@ -14,7 +14,9 @@ coupling_path = os.path.join(script_dir, 'coupling.dat')
 with open(coupling_path, 'r') as coupling_file:
     lines = coupling_file.readlines()
     for i, line in enumerate(lines):
-        if line.startswith('#Multilevel Flag'):
+        if line.strip() == '#DIM':
+            dim = lines[i+1].split()
+        elif line.startswith('#Multilevel Flag'):
             flag = int(lines[i].split()[-1])
         elif line.startswith('#Omega'):
             Omega = float(lines[i].split()[-1])
@@ -135,8 +137,9 @@ while i <= max_iter:
                 line = tallyfile.readline()
                 line = tallyfile.readline()
                 power_re = []
-                while not (line.isspace() or line.startswith('====')):
-                    power_re.append(float(line.split()[-1]))
+                for j in range(0, (int)(dim[0])*(int)(dim[1])*(int)(dim[2])):
+                    if float(line.split()[-1]) != 0:
+                        power_re.append(float(line.split()[-1]))
                     line = tallyfile.readline()
                 break
             line = tallyfile.readline()

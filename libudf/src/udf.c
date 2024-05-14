@@ -124,7 +124,7 @@ DEFINE_INIT(read_power, d)
 {
 	// On all nodes
 
-	real iwork[DIM0*DIM1*DIM2];
+	real* iwork = (real*)malloc((size_t)DIM0*(size_t)DIM1*(size_t)DIM2*sizeof(real));
     real total = 0.0;
 	real move_ori_x = 0.;
 	real move_ori_y = 0.;
@@ -204,8 +204,8 @@ DEFINE_INIT(read_power, d)
 	Thread *t;
 	int ID_fuel[1] = {7}; /******************* Change this !*******************/
 	real vol = 0.0;
+	real* vol_fuel = (real*)malloc((size_t)DIM0*(size_t)DIM1*(size_t)DIM2*sizeof(real));
 	
-	real vol_fuel[DIM0*DIM1*DIM2];
 	for (i = 0; i < DIM0*DIM1*DIM2; i++){
 		vol_fuel[i]=0.0;
 	}
@@ -239,6 +239,13 @@ DEFINE_INIT(read_power, d)
 		}
 	}
 
+	free(iwork);
+	free(vol_fuel);
+
+	#endif
+
+	#if RP_HOST
+		free(iwork);
 	#endif
 }
 
@@ -284,29 +291,29 @@ DEFINE_EXECUTE_AT_END(cal_th)
     int ix, iy, iz;
 	int jx, jy, jz;
 
-	real cnt_vol_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-	real cnt_vol_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
-	real cnt_vol_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
-	real cnt_vol_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
-    real cnt_power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-	real cnt_temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-	real cnt_temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
-	real cnt_temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
-	real cnt_temp_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
-	real cnt_dens_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
-	real F_iwork[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-	real C_iwork[OUTDIMC0*OUTDIMC1*OUTDIMC2];
-	real M_iwork[OUTDIMM0*OUTDIMM1*OUTDIMM2];
-	real R_iwork[OUTDIMR0*OUTDIMR1*OUTDIMR2];
+	real* cnt_vol_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+	real* cnt_vol_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
+	real* cnt_vol_moderator = (real*)malloc((size_t)OUTDIMM0*(size_t)OUTDIMM1*(size_t)OUTDIMM2*sizeof(real));
+	real* cnt_vol_reflector = (real*)malloc((size_t)OUTDIMR0*(size_t)OUTDIMR1*(size_t)OUTDIMR2*sizeof(real));
+    real* cnt_power_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+	real* cnt_temp_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+	real* cnt_temp_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
+	real* cnt_temp_moderator = (real*)malloc((size_t)OUTDIMM0*(size_t)OUTDIMM1*(size_t)OUTDIMM2*sizeof(real));
+	real* cnt_temp_reflector = (real*)malloc((size_t)OUTDIMR0*(size_t)OUTDIMR1*(size_t)OUTDIMR2*sizeof(real));
+	real* cnt_dens_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
+	real* F_iwork = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+	real* C_iwork = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
+	real* M_iwork = (real*)malloc((size_t)OUTDIMM0*(size_t)OUTDIMM1*(size_t)OUTDIMM2*sizeof(real));
+	real* R_iwork = (real*)malloc((size_t)OUTDIMR0*(size_t)OUTDIMR1*(size_t)OUTDIMR2*sizeof(real));
 	
 	#if RP_HOST // RP_HOST
 		// OUTPUT
-        real power_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-		real temp_fuel[OUTDIMF0*OUTDIMF1*OUTDIMF2];
-		real temp_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
-		real temp_moderator[OUTDIMM0*OUTDIMM1*OUTDIMM2];
-		real temp_reflector[OUTDIMR0*OUTDIMR1*OUTDIMR2];
-		real dens_fluid[OUTDIMC0*OUTDIMC1*OUTDIMC2];
+        real* power_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+		real* temp_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
+		real* temp_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
+		real* temp_moderator = (real*)malloc((size_t)OUTDIMM0*(size_t)OUTDIMM1*(size_t)OUTDIMM2*sizeof(real));
+		real* temp_reflector = (real*)malloc((size_t)OUTDIMR0*(size_t)OUTDIMR1*(size_t)OUTDIMR2*sizeof(real));
+		real* dens_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
 		real foo; 
 		// unit in K, kg/m^3
 		real default_temp_fuel;
@@ -578,10 +585,48 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		WriteCoolantData(temp_fluid, dens_fluid);
 		WriteReflectorData(temp_reflector);
 		
+		free(cnt_vol_fuel);
+		free(cnt_vol_fluid);
+		free(cnt_vol_moderator);
+		free(cnt_vol_reflector);
+		free(cnt_power_fuel);
+		free(cnt_temp_fuel);
+		free(cnt_temp_fluid);
+		free(cnt_temp_moderator);
+		free(cnt_temp_reflector);
+		free(cnt_dens_fluid);
+		free(F_iwork);
+		free(C_iwork);
+		free(M_iwork);
+		free(R_iwork);
+		free(power_fuel);
+		free(temp_fuel);
+		free(temp_fluid);
+		free(temp_moderator);
+		free(temp_reflector);
+		free(dens_fluid);
+
 	#endif // RP_HOST
 	
 	#if RP_HOST // RP_HOST
 		Message("MACRO DEFINE_EXECUTE_AT_END DONE! FROM HOST \n");
 	#endif // RP_HOST
+
+	#if !RP_HOST
+		free(cnt_vol_fuel);
+		free(cnt_vol_fluid);
+		free(cnt_vol_moderator);
+		free(cnt_vol_reflector);
+		free(cnt_power_fuel);
+		free(cnt_temp_fuel);
+		free(cnt_temp_fluid);
+		free(cnt_temp_moderator);
+		free(cnt_temp_reflector);
+		free(cnt_dens_fluid);
+		free(F_iwork);
+		free(C_iwork);
+		free(M_iwork);
+		free(R_iwork);
+	#endif
 	
 }
