@@ -1,0 +1,7 @@
+rc Singlepin.cas.h5
+rd Singlepin_init.dat.h5
+solve/time-step-size 0.02
+solve/dual-time-iterate 50 100
+wd Singlepin.dat.h5
+OK
+exit y

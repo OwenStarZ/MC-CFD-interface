@@ -11,7 +11,13 @@
 1000
 
 #Project Name [RMC input card name [split with space] Fluent case name, no ext]
-Singlepin pin
+Singlepin Singlepin
+
+#Coupling mode [0 = steady state, 1 = transient]
+0
+
+#time step [step size [s], total time [s], substep for Neu, substep for th, max inner iteration step for th]
+1 5 100 50 100
 
 #DIM
 8 8 100
@@ -52,6 +58,8 @@ Singlepin pin
 #SOR flag for th_calculation = 1
 
 #Residual factor = 3.0
+
+#tmax discrepancy tolerance = 0.001
 
 #Parallel processes for RMC = 100
 

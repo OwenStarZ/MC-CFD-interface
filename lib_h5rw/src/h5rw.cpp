@@ -120,7 +120,7 @@ void ReadRMCPowerTally(double b[], double p[])
 	status = H5Fclose(file);
 }
 
-void WriteFuelData(double data[])
+void WriteFuelData(double data[], double t)
 {
 	hid_t file, dataset;
 	herr_t status;
@@ -148,6 +148,8 @@ void WriteFuelData(double data[])
 	}
 
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &data3D[0][0][0]);
+	dataset = H5Dopen(file, "/temp_fuel_max", H5P_DEFAULT);
+	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &t);
 
 	status = H5Dclose(dataset);
 	status = H5Fclose(file);
@@ -157,7 +159,7 @@ void WriteFuelData(double data[])
 	free(data1D);
 }
 
-void WriteFuelData_Multilevel(double data1[], double data2[])
+void WriteFuelData_Multilevel(double data1[], double data2[], double t)
 {
 	hid_t file, dataset;
 	herr_t status;
@@ -227,7 +229,7 @@ void WriteFuelData_Multilevel(double data1[], double data2[])
 	}
 
     double r1 = 0.00025, r2 = 0.000345, r3 = 0.000385, r4 = 0.00042, r5 = 0.00046;
-    double T1, T2, T3, T4;
+    double T1, T2, T3, T4, T5, Tave;
     double k1, k4;
     double k2 = 0.5, k3 = 4.0, k5 = 4.0;
 
@@ -235,26 +237,41 @@ void WriteFuelData_Multilevel(double data1[], double data2[])
 	file = H5Fopen("info_fuel.h5", H5F_ACC_RDWR, H5P_DEFAULT);
 
 	//Dataset
-	
 	for (int k = 0; k < OUTDIMF2; k++) {
 		for (int j = 0; j < OUTDIMF1; j++) {
 			for (int i = 0; i < OUTDIMF0; i++) {
 				F_data[i][j][k] = data1[i + OUTDIMF0 * j + OUTDIMF0 * OUTDIMF1 * k];
-                power_data[i][j][k] = data2[i + OUTDIMF0 * j + OUTDIMF0 * OUTDIMF1 * k];
-                F5_data[i][j][k] = F_data[i][j][k] + (pow(r1, 3)*power_data[i][j][k]/(6*k5)) * (r5*r5+r5*r4-2*r4*r4) / (r5*(r5*r5+r5*r4+r4*r4));
-                T4 = F_data[i][j][k] + (pow(r1, 3)*power_data[i][j][k]/(3*k5))*(1/r4-1/r5);
-                k4 = lambda4(T4, r1, r3, r4, power_data[i][j][k]);
-                F4_data[i][j][k] = T4 + (pow(r1, 3)*power_data[i][j][k]/(6*k4)) * (r4*r4+r4*r3-2*r3*r3) / (r4*(r4*r4+r4*r3+r3*r3));
-                T3 = T4 + (pow(r1, 3)*power_data[i][j][k]/(3*k4))*(1/r3-1/r4);
-                F3_data[i][j][k] = T3 + (pow(r1, 3)*power_data[i][j][k]/(6*k3)) * (r3*r3+r3*r2-2*r2*r2) / (r3*(r3*r3+r3*r2+r2*r2));
-                T2 = T3 + (pow(r1, 3)*power_data[i][j][k]/(3*k3))*(1/r2-1/r3);
-                F2_data[i][j][k] = T2 + (pow(r1, 3)*power_data[i][j][k]/(6*k2)) * (r2*r2+r2*r1-2*r1*r1) / (r2*(r2*r2+r2*r1+r1*r1));
-                T1 = T2 + (pow(r1, 3)*power_data[i][j][k]/(3*k2))*(1/r1-1/r2);
-                k1 = lambda1(T1, r1, power_data[i][j][k]);
-                F1_data[i][j][k] = T1 + power_data[i][j][k]*r1*r1/(15*k1);
+				power_data[i][j][k] = data2[i + OUTDIMF0 * j + OUTDIMF0 * OUTDIMF1 * k];
 			}
 		}
 	}
+
+	for (int k = 0; k < OUTDIMF2; k++) {
+		for (int j = 0; j < OUTDIMF1; j++) {
+			for (int i = 0; i < OUTDIMF0; i++) {
+				T5 = F_data[i][j][k];
+				Tave = F_data[i][j][k];
+				do{
+					T5 = T5 - (Tave - F_data[i][j][k]);
+					F5_data[i][j][k] = T5 + (pow(r1, 3)*power_data[i][j][k]/(6*k5)) * (r5*r5+r5*r4-2*r4*r4) / (r5*(r5*r5+r5*r4+r4*r4));
+					T4 = T5 + (pow(r1, 3)*power_data[i][j][k]/(3*k5))*(1/r4-1/r5);
+					k4 = lambda4(T4, r1, r3, r4, power_data[i][j][k]);
+					F4_data[i][j][k] = T4 + (pow(r1, 3)*power_data[i][j][k]/(6*k4)) * (r4*r4+r4*r3-2*r3*r3) / (r4*(r4*r4+r4*r3+r3*r3));
+					T3 = T4 + (pow(r1, 3)*power_data[i][j][k]/(3*k4))*(1/r3-1/r4);
+					F3_data[i][j][k] = T3 + (pow(r1, 3)*power_data[i][j][k]/(6*k3)) * (r3*r3+r3*r2-2*r2*r2) / (r3*(r3*r3+r3*r2+r2*r2));
+					T2 = T3 + (pow(r1, 3)*power_data[i][j][k]/(3*k3))*(1/r2-1/r3);
+					F2_data[i][j][k] = T2 + (pow(r1, 3)*power_data[i][j][k]/(6*k2)) * (r2*r2+r2*r1-2*r1*r1) / (r2*(r2*r2+r2*r1+r1*r1));
+					T1 = T2 + (pow(r1, 3)*power_data[i][j][k]/(3*k2))*(1/r1-1/r2);
+					k1 = lambda1(T1, r1, power_data[i][j][k]);
+					F1_data[i][j][k] = T1 + power_data[i][j][k]*r1*r1/(15*k1);
+					Tave = F5_data[i][j][k] * (pow(r5, 3) - pow (r4, 3))/pow(r5, 3) + F4_data[i][j][k] * (pow(r4, 3) - pow (r3, 3))/pow(r5, 3) +
+					F3_data[i][j][k] * (pow(r3, 3) - pow (r2, 3))/pow(r5, 3) + F2_data[i][j][k] * (pow(r2, 3) - pow (r1, 3))/pow(r5, 3) +
+					F1_data[i][j][k] * pow(r1, 3)/pow(r5, 3);
+				}while(fabs(Tave - F_data[i][j][k])>0.001);
+			}
+		}
+	}
+
 
 	dataset = H5Dopen(file, "/temp_fuel", H5P_DEFAULT);
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F_data[0][0][0]);
@@ -268,6 +285,8 @@ void WriteFuelData_Multilevel(double data1[], double data2[])
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F4_data[0][0][0]);
 	dataset = H5Dopen(file, "/temp_fuel5", H5P_DEFAULT);
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F5_data[0][0][0]);
+	dataset = H5Dopen(file, "/temp_fuel_max", H5P_DEFAULT);
+	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &t);
 
 	status = H5Dclose(dataset);
 	status = H5Fclose(file);

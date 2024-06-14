@@ -4,11 +4,11 @@
 #include "stdlib.h"
 
 extern void ReadRMCPowerTally(real b[], real p[]);
-extern void WriteFuelData(real data[]);
-extern void WriteFuelData_Multilevel(double data1[], double data2[]);
+extern void WriteFuelData(real data[], real t);
+extern void WriteFuelData_Multilevel(real data1[], real data2[], real t);
 extern void WriteModeratorData(real data[]);
 extern void WriteCoolantData(real data1[], real data2[]);
-extern void WriteReflectorData(double data[]);
+extern void WriteReflectorData(real data[]);
 
 /*******************Auto changed by py script*******************/
 
@@ -120,7 +120,7 @@ int GetIndexByPos(real h, real xmin, real xmax, real pos)
 	}
 }
 
-DEFINE_INIT(read_power, d)
+DEFINE_ADJUST(read_power, d)
 {
 	// On all nodes
 
@@ -291,6 +291,8 @@ DEFINE_EXECUTE_AT_END(cal_th)
     int ix, iy, iz;
 	int jx, jy, jz;
 
+	real tmax = 0.0;
+
 	real* cnt_vol_fuel = (real*)malloc((size_t)OUTDIMF0*(size_t)OUTDIMF1*(size_t)OUTDIMF2*sizeof(real));
 	real* cnt_vol_fluid = (real*)malloc((size_t)OUTDIMC0*(size_t)OUTDIMC1*(size_t)OUTDIMC2*sizeof(real));
 	real* cnt_vol_moderator = (real*)malloc((size_t)OUTDIMM0*(size_t)OUTDIMM1*(size_t)OUTDIMM2*sizeof(real));
@@ -427,6 +429,9 @@ DEFINE_EXECUTE_AT_END(cal_th)
 			t = Lookup_Thread(d, ID_fuel[i]);
 			begin_c_loop_int(c, t)
 			{
+				if (C_T(c, t) > tmax){
+					tmax = C_T(c,t);
+				}
 				C_CENTROID(x, c, t);
 				ix = GetIndexByPos(F_hx, F_bndry_x[0], F_bndry_x[1], x[0]);
 				iy = GetIndexByPos(F_hy, F_bndry_y[0], F_bndry_y[1], x[1]);
@@ -520,6 +525,7 @@ DEFINE_EXECUTE_AT_END(cal_th)
 	PRF_GRSUM(cnt_temp_moderator, size_M_mesh, M_iwork);
 	PRF_GRSUM(cnt_temp_reflector, size_R_mesh, R_iwork);
 	PRF_GRSUM(cnt_dens_fluid, size_C_mesh, C_iwork);
+	PRF_GRHIGH1(tmax);
 	
 	node_to_host_real(cnt_vol_fuel, size_F_mesh);
 	node_to_host_real(cnt_vol_fluid, size_C_mesh);
@@ -531,6 +537,7 @@ DEFINE_EXECUTE_AT_END(cal_th)
 	node_to_host_real(cnt_temp_moderator, size_M_mesh);
 	node_to_host_real(cnt_temp_reflector, size_R_mesh);
 	node_to_host_real(cnt_dens_fluid, size_C_mesh);
+	node_to_host_real_1(tmax);
 	
 	#if RP_HOST // RP_HOST
 
@@ -576,10 +583,10 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		
 		// Write data to h5Files 
 		if (Multilevel_flag == 1){
-			WriteFuelData_Multilevel(temp_fuel, power_fuel);
+			WriteFuelData_Multilevel(temp_fuel, power_fuel, tmax);
 		}
 		else{
-			WriteFuelData(temp_fuel);
+			WriteFuelData(temp_fuel, tmax);
 		}
 		WriteModeratorData(temp_moderator);
 		WriteCoolantData(temp_fluid, dens_fluid);
@@ -627,6 +634,5 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		free(C_iwork);
 		free(M_iwork);
 		free(R_iwork);
-	#endif
-	
+	#endif	
 }

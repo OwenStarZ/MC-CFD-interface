@@ -26,7 +26,7 @@ VERSION=`basename "\`pwd\`"`
 ARCH=`expr "\`pwd\`" : '.*/\(.*\)/[23].*'`
 ARCHC=$(ARCH)
 TARGET=libudf.so
-EX_LIB=/home/lenovo/Research/2023_ss_coupling/test/lib_h5rw/lib/libh5rw.so
+EX_LIB=e:\Research\2024_Transient_Coupling\MC-CFD-interface/libh5rw.so
 UDFDATA=udf_names.c
 SOURCES=   $(CSOURCES) $(HSOURCES)
 OBJS1 = $(CSOURCES:.cpp=.o)

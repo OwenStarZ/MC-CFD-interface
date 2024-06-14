@@ -34,6 +34,8 @@ with open(coupling_path, 'r') as coupling_file:
             R_bndry = lines[i+1].split()
         elif line.startswith('#Multilevel Flag'):
             flag = int(lines[i].split()[-1])
+        elif line.startswith('#Coupling mode'):
+            mode = int(lines[i+1])
 
 
 # Part II. 替换 udf.c 文件中的宏定义，并更改配置文件中的相关路径
@@ -230,108 +232,110 @@ shutil.copyfile(temp_file_path, rmc_path)  # 强制替换原始文件
 
 os.remove(temp_file_path)  # 删除临时文件
 
+if mode == 0:
+    # Part V. 得到初始.h5文件
 
-# Part V. 得到初始.h5文件
+    # 创建燃料（fuel）的HDF5文件
+    filename_fuel = os.path.join(script_dir, 'info_fuel.h5')
+    file_fuel = h5py.File(filename_fuel, 'w')
 
-# 创建燃料（fuel）的HDF5文件
-filename_fuel = os.path.join(script_dir, 'info_fuel.h5')
-file_fuel = h5py.File(filename_fuel, 'w')
+    group_fuel = file_fuel.create_group('Geometry')
+    group_fuel.attrs['MeshType'] = np.array([1], dtype=np.int32)
 
-group_fuel = file_fuel.create_group('Geometry')
-group_fuel.attrs['MeshType'] = np.array([1], dtype=np.int32)
+    bin_number_fuel = np.array([int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])])
+    group_fuel.create_dataset('BinNumber', data=bin_number_fuel, dtype=np.float64)
 
-bin_number_fuel = np.array([int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])])
-group_fuel.create_dataset('BinNumber', data=bin_number_fuel, dtype=np.float64)
+    boundary_fuel = np.array([[float(F_bndry[0]), float(F_bndry[1])], [float(F_bndry[2]), float(F_bndry[3])], [float(F_bndry[4]), float(F_bndry[5])]])
+    boundary_fuel *= 100
+    group_fuel.create_dataset('Boundary', data=boundary_fuel, dtype=np.float64)
 
-boundary_fuel = np.array([[float(F_bndry[0]), float(F_bndry[1])], [float(F_bndry[2]), float(F_bndry[3])], [float(F_bndry[4]), float(F_bndry[5])]])
-boundary_fuel *= 100
-group_fuel.create_dataset('Boundary', data=boundary_fuel, dtype=np.float64)
+    data_fuel = np.full((int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])), float(lines[6]), dtype=np.float64)
+    file_fuel.create_dataset('/temp_fuel', data=data_fuel, dtype=np.float64)
 
-data_fuel = np.full((int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])), float(lines[6]), dtype=np.float64)
-dataset_fuel = file_fuel.create_dataset('/temp_fuel', data=data_fuel, dtype=np.float64)
+    # data_fuel_max = np.array([float(lines[6])])
+    file_fuel.create_dataset('/temp_fuel_max', data=float(lines[6]), dtype=np.float64)
 
-if flag == 1:
-    for i in range(1, 6):
-        dataset_name = f'/temp_fuel{i}'
-        data_fuel_multilevel = np.full((int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])), float(lines[6]), dtype=np.float64)
-        file_fuel.create_dataset(dataset_name, data=data_fuel_multilevel, dtype=np.float64)
+    if flag == 1:
+        for i in range(1, 6):
+            dataset_name = f'/temp_fuel{i}'
+            data_fuel_multilevel = np.full((int(out_F_dim[0]), int(out_F_dim[1]), int(out_F_dim[2])), float(lines[6]), dtype=np.float64)
+            file_fuel.create_dataset(dataset_name, data=data_fuel_multilevel, dtype=np.float64)
 
-file_fuel.close()
+    file_fuel.close()
 
-# 创建冷却剂（coolant）的HDF5文件
-filename_coolant = os.path.join(script_dir, 'info_coolant.h5')
-file_coolant = h5py.File(filename_coolant, 'w')
+    # 创建冷却剂（coolant）的HDF5文件
+    filename_coolant = os.path.join(script_dir, 'info_coolant.h5')
+    file_coolant = h5py.File(filename_coolant, 'w')
 
-group_coolant = file_coolant.create_group('Geometry')
-group_coolant.attrs['MeshType'] = np.array([1], dtype=np.int32)
+    group_coolant = file_coolant.create_group('Geometry')
+    group_coolant.attrs['MeshType'] = np.array([1], dtype=np.int32)
 
-bin_number_coolant = np.array([int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])])
-group_coolant.create_dataset('BinNumber', data=bin_number_coolant, dtype=np.float64)
+    bin_number_coolant = np.array([int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])])
+    group_coolant.create_dataset('BinNumber', data=bin_number_coolant, dtype=np.float64)
 
-boundary_coolant = np.array([[float(C_bndry[0]), float(C_bndry[1])], [float(C_bndry[2]), float(C_bndry[3])], [float(C_bndry[4]), float(C_bndry[5])]])
-boundary_coolant *= 100
-group_coolant.create_dataset('Boundary', data=boundary_coolant, dtype=np.float64)
+    boundary_coolant = np.array([[float(C_bndry[0]), float(C_bndry[1])], [float(C_bndry[2]), float(C_bndry[3])], [float(C_bndry[4]), float(C_bndry[5])]])
+    boundary_coolant *= 100
+    group_coolant.create_dataset('Boundary', data=boundary_coolant, dtype=np.float64)
 
-data_coolant_temp = np.full((int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])), float(lines[9]), dtype=np.float64)
-dataset_coolant_temp = file_coolant.create_dataset('/temp_coolant', data=data_coolant_temp, dtype=np.float64)
+    data_coolant_temp = np.full((int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])), float(lines[9]), dtype=np.float64)
+    file_coolant.create_dataset('/temp_coolant', data=data_coolant_temp, dtype=np.float64)
 
-data_coolant_density = np.full((int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])), float(lines[10]) / 1000, dtype=np.float64)
-dataset_coolant_density = file_coolant.create_dataset('/r_coolant', data=data_coolant_density, dtype=np.float64)
+    data_coolant_density = np.full((int(out_C_dim[0]), int(out_C_dim[1]), int(out_C_dim[2])), float(lines[10]) / 1000, dtype=np.float64)
+    file_coolant.create_dataset('/r_coolant', data=data_coolant_density, dtype=np.float64)
 
-file_coolant.close()
+    file_coolant.close()
 
-# 创建中子减速剂（moderator）的HDF5文件
-filename_moderator = os.path.join(script_dir, 'info_moderator.h5')
-file_moderator = h5py.File(filename_moderator, 'w')
+    # 创建中子慢化剂（moderator）的HDF5文件
+    filename_moderator = os.path.join(script_dir, 'info_moderator.h5')
+    file_moderator = h5py.File(filename_moderator, 'w')
 
-group_moderator = file_moderator.create_group('Geometry')
-group_moderator.attrs['MeshType'] = np.array([1], dtype=np.int32)
+    group_moderator = file_moderator.create_group('Geometry')
+    group_moderator.attrs['MeshType'] = np.array([1], dtype=np.int32)
 
-bin_number_moderator = np.array([int(out_M_dim[0]), int(out_M_dim[1]), int(out_M_dim[2])])
-group_moderator.create_dataset('BinNumber', data=bin_number_moderator, dtype=np.float64)
+    bin_number_moderator = np.array([int(out_M_dim[0]), int(out_M_dim[1]), int(out_M_dim[2])])
+    group_moderator.create_dataset('BinNumber', data=bin_number_moderator, dtype=np.float64)
 
-boundary_moderator = np.array([[float(M_bndry[0]), float(M_bndry[1])], [float(M_bndry[2]), float(M_bndry[3])], [float(M_bndry[4]), float(M_bndry[5])]])
-boundary_moderator *= 100
-group_moderator.create_dataset('Boundary', data=boundary_moderator, dtype=np.float64)
+    boundary_moderator = np.array([[float(M_bndry[0]), float(M_bndry[1])], [float(M_bndry[2]), float(M_bndry[3])], [float(M_bndry[4]), float(M_bndry[5])]])
+    boundary_moderator *= 100
+    group_moderator.create_dataset('Boundary', data=boundary_moderator, dtype=np.float64)
 
-data_moderator = np.full((int(out_M_dim[0]), int(out_M_dim[1]), int(out_M_dim[2])), float(lines[7]), dtype=np.float64)
-dataset_moderator = file_moderator.create_dataset('/temp_moderator', data=data_moderator, dtype=np.float64)
+    data_moderator = np.full((int(out_M_dim[0]), int(out_M_dim[1]), int(out_M_dim[2])), float(lines[7]), dtype=np.float64)
+    file_moderator.create_dataset('/temp_moderator', data=data_moderator, dtype=np.float64)
 
-file_moderator.close()
+    file_moderator.close()
 
-# 创建反射材料（reflector）的HDF5文件
-filename_reflector = os.path.join(script_dir, 'info_reflector.h5')
-file_reflector = h5py.File(filename_reflector, 'w')
+    # 创建反射材料（reflector）的HDF5文件
+    filename_reflector = os.path.join(script_dir, 'info_reflector.h5')
+    file_reflector = h5py.File(filename_reflector, 'w')
 
-group_reflector = file_reflector.create_group('Geometry')
-group_reflector.attrs['MeshType'] = np.array([1], dtype=np.int32)
+    group_reflector = file_reflector.create_group('Geometry')
+    group_reflector.attrs['MeshType'] = np.array([1], dtype=np.int32)
 
-bin_number_reflector = np.array([int(out_R_dim[0]), int(out_R_dim[1]), int(out_R_dim[2])])
-group_reflector.create_dataset('BinNumber', data=bin_number_reflector, dtype=np.float64)
+    bin_number_reflector = np.array([int(out_R_dim[0]), int(out_R_dim[1]), int(out_R_dim[2])])
+    group_reflector.create_dataset('BinNumber', data=bin_number_reflector, dtype=np.float64)
 
-boundary_reflector = np.array([[float(R_bndry[0]), float(R_bndry[1])], [float(R_bndry[2]), float(R_bndry[3])], [float(R_bndry[4]), float(R_bndry[5])]])
-boundary_reflector *= 100
-group_reflector.create_dataset('Boundary', data=boundary_moderator, dtype=np.float64)
+    boundary_reflector = np.array([[float(R_bndry[0]), float(R_bndry[1])], [float(R_bndry[2]), float(R_bndry[3])], [float(R_bndry[4]), float(R_bndry[5])]])
+    boundary_reflector *= 100
+    group_reflector.create_dataset('Boundary', data=boundary_moderator, dtype=np.float64)
 
-data_reflector = np.full((int(out_R_dim[0]), int(out_R_dim[1]), int(out_R_dim[2])), float(lines[8]), dtype=np.float64)
-dataset_reflector = file_reflector.create_dataset('/temp_reflector', data=data_reflector, dtype=np.float64)
+    data_reflector = np.full((int(out_R_dim[0]), int(out_R_dim[1]), int(out_R_dim[2])), float(lines[8]), dtype=np.float64)
+    file_reflector.create_dataset('/temp_reflector', data=data_reflector, dtype=np.float64)
 
-file_reflector.close()
+    file_reflector.close()
 
+    # Part VI. 将初始.h5文件保存到histories路径中
+    source_files = [
+        "info_fuel.h5",
+        "info_coolant.h5",
+        "info_moderator.h5",
+        "info_reflector.h5",
+    ]
+    destination_folder = os.path.join(script_dir, "histories")
+    os.makedirs(destination_folder, exist_ok=True)
 
-# Part VI. 将初始.h5文件保存到histories路径中
-source_files = [
-    "info_fuel.h5",
-    "info_coolant.h5",
-    "info_moderator.h5",
-    "info_reflector.h5",
-]
-destination_folder = os.path.join(script_dir, "histories")
-os.makedirs(destination_folder, exist_ok=True)
-
-for file in source_files:
-    file_name, file_ext = os.path.splitext(file)
-    new_file_name = f"{file_name}_iter0{file_ext}"
-    source_path = os.path.join(script_dir, file)
-    destination_path = os.path.join(destination_folder, new_file_name)
-    shutil.copyfile(source_path, destination_path)
+    for file in source_files:
+        file_name, file_ext = os.path.splitext(file)
+        new_file_name = f"{file_name}_iter0{file_ext}"
+        source_path = os.path.join(script_dir, file)
+        destination_path = os.path.join(destination_folder, new_file_name)
+        shutil.copyfile(source_path, destination_path)

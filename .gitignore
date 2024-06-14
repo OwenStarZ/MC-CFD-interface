@@ -1,3 +1,7 @@
 *.docx
 test_dir/
 VERSION.md
+test.py
+*.jpg
+.vscode
+*.rmc
