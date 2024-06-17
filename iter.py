@@ -335,7 +335,9 @@ def MC_post(i, path, keff, std, keff_re_diff, L2_norm, Linf, re_ave):
     file_name, file_ext = os.path.splitext(power_profile)
     shutil.copyfile(os.path.join(script_dir, power_profile), os.path.join(path, f"{file_name}_iter{i}{file_ext}"))
 
-    if i > 1:
+    if i == 1:
+        n_P_converge = False
+    elif i > 1:
         # 由蒙卡结果的标准差计算判敛准则，只读取一个Tally包含的所有行即可，注意这句话的含义表明了一定不能是第一次迭代，否则无需也无法计算判敛条件
         Tally_path = os.path.join(path, f'{name[0]}.rmc_iter{i-1}.Tally')
         with open(Tally_path, 'r') as tallyfile:
