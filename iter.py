@@ -171,7 +171,7 @@ def transient():
     jou_path = os.path.join(script_dir, f'runFluent{mode}.jou')  # runFluent1.jou 文件的路径
     temp_file_path = jou_path + '.tmp'  # 创建一个临时文件用于修改
     with open(jou_path, 'r', encoding='utf-8') as jou_file, open(temp_file_path, 'w', encoding='utf-8') as temp_file:
-        for line in jou_file:            
+        for line in jou_file:
             if line.startswith('rc'):
                 temp_file.write(f'rc {name[1]}.cas.h5\n')
             elif line.startswith('rd'):
