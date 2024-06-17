@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 	void ReadRMCPowerTally(double b[], double p[]);
-	void WriteFuelData(double data[]);
-	void WriteFuelData_Multilevel(double data1[], double data2[]);
+	void WriteFuelData(double data[], double t);
+	void WriteFuelData_Multilevel(double data1[], double data2[], double t);
 	void WriteModeratorData(double data[]);
 	void WriteCoolantData(double data1[], double data2[]);
 	void WriteReflectorData(double data[]);
