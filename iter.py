@@ -343,7 +343,7 @@ def MC_post(i, path, keff, std, keff_re_diff, L2_norm, Linf, re_ave):
         n_P_converge = False
     elif i > 1:
         # 由蒙卡结果的标准差计算判敛准则，只读取一个Tally包含的所有行即可，注意这句话的含义表明了一定不能是第一次迭代，否则无需也无法计算判敛条件
-        Tally_path = os.path.join(path, f'{name[0]}.rmc_iter{i-1}.Tally')
+        Tally_path = os.path.join(path, f'{name[0]}_iter{i-1}.rmc.Tally')
         with open(Tally_path, 'r') as tallyfile:
             line = tallyfile.readline()
             while line:
