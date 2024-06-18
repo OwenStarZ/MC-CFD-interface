@@ -120,7 +120,8 @@ def steady_state_cal():
 
         # Step.IV.4. 将其余结果文件归档
         for file in end_files:
-            file_name, file_ext = os.path.splitext(file)
+            first_dot_index = file.find('.')
+            file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
             shutil.copyfile(os.path.join(script_dir, file), os.path.join(destination_folder, f"{file_name}_iter{i}{file_ext}"))
 
         i += 1
@@ -249,7 +250,8 @@ def transient():
         current_timestep_path = os.path.join(destination_folder, f'timestep_{n}')
         os.makedirs(current_timestep_path, exist_ok=True)
         for file in init_files:
-            file_name, file_ext = os.path.splitext(file)
+            first_dot_index = file.find('.')
+            file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
             shutil.copyfile(os.path.join(script_dir, file), os.path.join(current_timestep_path, f"{file_name}_iter0{file_ext}"))
         L2_norm = []                    # 【MC分布量】单时间步内两次Picard迭代间三维功率差向量的二范数/root(N) (差向量元素方均根)
         Linf = []                       # 【MC分布量】单时间步内两次Picard迭代间三维功率差向量的无穷范数，比二范数更加严格
@@ -278,7 +280,8 @@ def transient():
 
             # Step.V.4. 将其余结果文件归档
             for file in end_files:
-                file_name, file_ext = os.path.splitext(file)
+                first_dot_index = file.find('.')
+                file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
                 shutil.copyfile(os.path.join(script_dir, file), os.path.join(current_timestep_path, f"{file_name}_iter{i}{file_ext}"))
 
             i += 1
@@ -332,7 +335,8 @@ def MC_post(i, path, keff, std, keff_re_diff, L2_norm, Linf, re_ave):
 
     # 松弛前先进行功率的文件归档，否则功率原始数据将直接被松弛处理后的数据覆盖，从而损失原始数据
     power_profile = "MeshTally1.h5"
-    file_name, file_ext = os.path.splitext(power_profile)
+    first_dot_index = power_profile.find('.')
+    file_name, file_ext = (power_profile[:first_dot_index], power_profile[first_dot_index:]) if first_dot_index != -1 else (power_profile, '')
     shutil.copyfile(os.path.join(script_dir, power_profile), os.path.join(path, f"{file_name}_iter{i}{file_ext}"))
 
     if i == 1:
@@ -401,7 +405,8 @@ def CFD_post(i, path, thermal_files, tmax, tmax_re_diff):
     # 热工水力计算结果的文件归档与松弛处理判定，同样需要先归档后松弛，以防原始数据被松弛后的结果覆盖，但根据实测，不推荐做松弛
     # 先归档
     for file in thermal_files:
-        file_name, file_ext = os.path.splitext(file)
+        first_dot_index = file.find('.')
+        file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
         shutil.copyfile(os.path.join(script_dir, file), os.path.join(path, f"{file_name}_iter{i}{file_ext}"))
 
     # 储存tmax值，并计算判敛条件，注意第一次迭代虽然可以计算，但结果相当于时间步结尾与初始值相对比，无意义，也无需松弛

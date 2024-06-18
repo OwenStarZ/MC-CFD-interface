@@ -525,7 +525,7 @@ DEFINE_EXECUTE_AT_END(cal_th)
 	PRF_GRSUM(cnt_temp_moderator, size_M_mesh, M_iwork);
 	PRF_GRSUM(cnt_temp_reflector, size_R_mesh, R_iwork);
 	PRF_GRSUM(cnt_dens_fluid, size_C_mesh, C_iwork);
-	PRF_GRHIGH1(tmax);
+	tmax = PRF_GRHIGH1(tmax);
 	
 	node_to_host_real(cnt_vol_fuel, size_F_mesh);
 	node_to_host_real(cnt_vol_fluid, size_C_mesh);
@@ -613,10 +613,7 @@ DEFINE_EXECUTE_AT_END(cal_th)
 		free(temp_reflector);
 		free(dens_fluid);
 
-	#endif // RP_HOST
-	
-	#if RP_HOST // RP_HOST
-		Message("MACRO DEFINE_EXECUTE_AT_END DONE! FROM HOST \n");
+		Message("Thermal-hydraulics data post process done, current maximum temperature = %lf, FROM HOST\n", tmax);
 	#endif // RP_HOST
 
 	#if !RP_HOST

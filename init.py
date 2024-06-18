@@ -334,7 +334,8 @@ if mode == 0:
     os.makedirs(destination_folder, exist_ok=True)
 
     for file in source_files:
-        file_name, file_ext = os.path.splitext(file)
+        first_dot_index = file.find('.')
+        file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
         new_file_name = f"{file_name}_iter0{file_ext}"
         source_path = os.path.join(script_dir, file)
         destination_path = os.path.join(destination_folder, new_file_name)
