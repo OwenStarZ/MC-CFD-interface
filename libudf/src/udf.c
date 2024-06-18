@@ -159,7 +159,7 @@ DEFINE_ADJUST(read_power, d)
 		
 		Message("\n start reading power... \n");
 		ReadRMCPowerTally(rmc_bndry, rmc_power);
-		Message("\n power transfered \n");
+		Message("\n power transfered, current total power = %lf MW\n", power_all);
 
 		for (iz = 0; iz < DIM2; iz++){
             for (iy = 0; iy < DIM1; iy++){
