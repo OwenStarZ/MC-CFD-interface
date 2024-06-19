@@ -78,6 +78,8 @@ def steady_state_cal():
         # "info_reflector.h5",
         f"{name[0]}.rmc.out",
         f"{name[0]}.rmc.Tally",
+        f"{name[0]}.rmc.State.h5",
+        f"{name[0]}.rmc.innerproduct",
         # "MeshTally1.h5",
         "MeshTally2.h5",
         f"{name[1]}.dat.h5"
@@ -120,9 +122,12 @@ def steady_state_cal():
 
         # Step.IV.4. 将其余结果文件归档
         for file in end_files:
-            first_dot_index = file.find('.')
-            file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
-            shutil.copyfile(os.path.join(script_dir, file), os.path.join(destination_folder, f"{file_name}_iter{i}{file_ext}"))
+            if os.path.exists(os.path.join(script_dir, file)):
+                first_dot_index = file.find('.')
+                file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
+                shutil.copyfile(os.path.join(script_dir, file), os.path.join(destination_folder, f"{file_name}_iter{i}{file_ext}"))
+            else:
+                print(f"\nWarning: File {file} does not exist and will be skipped, please check the name.\n")
 
         i += 1
 
@@ -149,6 +154,11 @@ def transient():
                 Nth = int(lines[i+1].split()[3])
                 max_inner_th_step = int(lines[i+1].split()[4])
                 sub_deltat_th = float(deltat/Nth)
+            elif line.startswith('#Coupling order'):
+                if int(lines[i+1]) == 1:
+                    order_flag = 1
+                else:
+                    order_flag = 0
         init_power = float(lines[1])
     with open(os.path.join(script_dir, f'{name[0]}.rmc.innerproduct'), 'r') as init_power_file:
         lines = init_power_file.readlines()
@@ -265,24 +275,39 @@ def transient():
         # Step.V. 单时间步内的Picard内迭代，当max_iter=1时，退化为单步法
         while i <= max_iter and (all_iter_flag == 1 or not converge):
 
-            # Step.V.1. run RMC with post process
-            shutil.copyfile(os.path.join(script_dir, f'{name[0]}_init.rmc.State.h5'), os.path.join(script_dir, f'{name[0]}.rmc.State.h5'))
-            os.system(run_MC)
-            n_k_converge, n_P_converge = MC_post(i, current_timestep_path, keff, std, keff_re_diff, L2_norm, Linf, re_ave)  # i与path为输入参数，其余列表作更新
-            current_power = transient_power_update(init_power, init_power_factor)  # 计算，储存功率值，并更新coupling.dat以备UDF读取
+            if order_flag == 0:
+                # Step.V.1. run RMC with post process
+                shutil.copyfile(os.path.join(script_dir, f'{name[0]}_init.rmc.State.h5'), os.path.join(script_dir, f'{name[0]}.rmc.State.h5'))
+                os.system(run_MC)
+                n_k_converge, n_P_converge = MC_post(i, current_timestep_path, keff, std, keff_re_diff, L2_norm, Linf, re_ave)  # i与path为输入参数，其余列表作更新
+                current_power = transient_power_update(init_power, init_power_factor)  # 计算，储存功率值，并更新coupling.dat以备UDF读取
 
-            # Step.V.2. run Fluent with post process
-            os.system(run_CFD)
-            th_converge = CFD_post(i, current_timestep_path, thermal_files, tmax, tmax_re_diff)  # i, path与文件列表为输入参数，其余列表作更新
+                # Step.V.2. run Fluent with post process
+                os.system(run_CFD)
+                th_converge = CFD_post(i, current_timestep_path, thermal_files, tmax, tmax_re_diff)  # i, path与文件列表为输入参数，其余列表作更新
+
+            elif order_flag == 1:
+                # Step.V.1. run Fluent with post process
+                os.system(run_CFD)
+                th_converge = CFD_post(i, current_timestep_path, thermal_files, tmax, tmax_re_diff)  # i, path与文件列表为输入参数，其余列表作更新
+
+                # Step.V.2. run RMC with post process
+                shutil.copyfile(os.path.join(script_dir, f'{name[0]}_init.rmc.State.h5'), os.path.join(script_dir, f'{name[0]}.rmc.State.h5'))
+                os.system(run_MC)
+                n_k_converge, n_P_converge = MC_post(i, current_timestep_path, keff, std, keff_re_diff, L2_norm, Linf, re_ave)  # i与path为输入参数，其余列表作更新
+                current_power = transient_power_update(init_power, init_power_factor)  # 计算，储存功率值，并更新coupling.dat以备UDF读取
 
             # Step.V.3. 当且仅当蒙卡计算的集总量与分布量，CFD计算的集总量全部收敛时，判定耦合收敛
             converge = n_k_converge * n_P_converge * th_converge
 
             # Step.V.4. 将其余结果文件归档
             for file in end_files:
-                first_dot_index = file.find('.')
-                file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
-                shutil.copyfile(os.path.join(script_dir, file), os.path.join(current_timestep_path, f"{file_name}_iter{i}{file_ext}"))
+                if os.path.exists(os.path.join(script_dir, file)):
+                    first_dot_index = file.find('.')
+                    file_name, file_ext = (file[:first_dot_index], file[first_dot_index:]) if first_dot_index != -1 else (file, '')
+                    shutil.copyfile(os.path.join(script_dir, file), os.path.join(current_timestep_path, f"{file_name}_iter{i}{file_ext}"))
+                else:
+                    print(f"\nWarning: File {file} does not exist and will be skipped, please check the name.\n")
 
             i += 1
 
@@ -367,7 +392,7 @@ def MC_post(i, path, keff, std, keff_re_diff, L2_norm, Linf, re_ave):
                 non_zero_indices = np.nonzero(previous_data)
                 abs_difference = np.subtract(data[non_zero_indices], previous_data[non_zero_indices])
                 L2_norm.append(np.sqrt(np.mean(np.square(abs_difference))))
-                Linf.append(np.max(abs_difference))
+                Linf.append(np.max(np.abs(abs_difference)))
 
                 # !!!!!!!!!!!!!!!!!!!!!!  判敛准则  重要  !!!!!!!!!!!!!!!!!!!!!! #
                 n_P_converge = max(L2_norm[i-2], Linf[i-2]) <= re_ave[i-2]

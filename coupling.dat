@@ -55,14 +55,17 @@ Singlepin Singlepin
 
 #Omega = 0.5
 
-#SOR flag for th_calculation = 1
+#SOR flag for th_calculation = 0
 
 #Residual factor = 3.0
 
 #tmax discrepancy tolerance = 0.001
 
-#Parallel processes for RMC = 100
+#Parallel processes for RMC = 64
 
-#Parallel processes for Fluent = 50
+#Parallel processes for Fluent = 64
 
 #Output all iter flag = 1
+
+#Coupling order [only matters for transient calculation! 0: start with MC; 1: start with CFD; default: start with MC]
+0
