@@ -244,6 +244,7 @@ def transient():
     tmax_time = []
 
     time.append(t)
+    iteration_step.append(0)
     power_time.append(init_power)
     power_re_factor_time.append(1.0)
     keff_time.append(1.0)
@@ -569,7 +570,7 @@ def transient_output(n, path, time, iteration_step, power_time, power_re_factor_
         f.write(f'\nMC subtimestep number = {Nneu}, CFD subtimestep number = {Nth}, maximum iteration per CFD subtimestep = {max_inner_th_step}\n')
         f.write('\nstep        time        Converge at Picard iteration        power, MW\
         power factor        keff        reactivity        maximum temperature, K\n')
-        np.savetxt(f, transient_data, fmt='%d    %.4f    %d    %.6f    %.6f    %.6f    %.6f    %.4f')
+        np.savetxt(f, transient_data, fmt='%d           %.4f           %d           %.6f           %.6f           %.6f           %.6f           %.4f')
 
 
 if mode == 0:
