@@ -275,7 +275,7 @@ void WriteFuelData_Multilevel(double data1[], double data2[], double t)
 
 	dataset = H5Dopen(file, "/temp_fuel", H5P_DEFAULT);
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F_data[0][0][0]);
-    dataset = H5Dopen(file, "/temp_fuel1", H5P_DEFAULT);
+	dataset = H5Dopen(file, "/temp_fuel1", H5P_DEFAULT);
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F1_data[0][0][0]);
 	dataset = H5Dopen(file, "/temp_fuel2", H5P_DEFAULT);
 	status = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &F2_data[0][0][0]);
